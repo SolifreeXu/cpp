@@ -1,2 +1,2 @@
 # forever-freedom
-自由开创的存储空间
+自由分享空间
