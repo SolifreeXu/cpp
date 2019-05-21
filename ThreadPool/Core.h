@@ -9,7 +9,7 @@
 #define ETERFREE_BEGIN namespace eterfree{
 #define ETERFREE_END }
 
-// 自动加双引号
+// 鑷姩鍔犲弻寮曞彿
 #define GET_STR(x) #x
 
 #if _MSC_VER >= 1900

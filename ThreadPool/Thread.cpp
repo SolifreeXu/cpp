@@ -7,114 +7,114 @@
 #include <exception>
 #include <iostream>
 
-// Ïß³ÌÊı¾İ½á¹¹Ìå
+// çº¿ç¨‹æ•°æ®ç»“æ„ä½“
 struct ThreadStructure
 {
-	std::thread thread;					// Ïß³Ì
-	ThreadPool *threadPool;				// Ïß³Ì³ØÖ¸Õë
-	std::mutex threadMutex;				// Ïß³Ì»¥³âÔª
-	std::condition_variable signal;		// Ìõ¼ş±äÁ¿
-	TaskPair task;						// ÈÎÎñº¯Êı×Ó
-	std::atomic_bool bClosed;			// ¹Ø±Õ×´Ì¬±êÖ¾
-	std::atomic_bool bRunning;			// ÔËĞĞ×´Ì¬±êÖ¾
-	std::atomic_bool bIntervening;		// ÔÊĞí½éÈë±êÖ¾
+	std::thread thread;					// çº¿ç¨‹
+	ThreadPool *threadPool;				// çº¿ç¨‹æ± æŒ‡é’ˆ
+	std::mutex threadMutex;				// çº¿ç¨‹äº’æ–¥å…ƒ
+	std::condition_variable signal;		// æ¡ä»¶å˜é‡
+	TaskPair task;						// ä»»åŠ¡å‡½æ•°å­
+	std::atomic_bool bClosed;			// å…³é—­çŠ¶æ€æ ‡å¿—
+	std::atomic_bool bRunning;			// è¿è¡ŒçŠ¶æ€æ ‡å¿—
+	std::atomic_bool bIntervening;		// å…è®¸ä»‹å…¥æ ‡å¿—
 	//void *vpParameters;
-	// Ïß³Ì¹ı³Ì²ÎÊı½â¾ö·½°¸£ºĞé»ùÀàÖ¸Õë£¬¹ı³ÌÀà¼Ì³ĞĞé»ùÀà£¬Í¨¹ıÇ¿ÖÆÀàĞÍ×ª»»£¬ÔÚ¹ı³Ìº¯ÊıÖĞ·ÃÎÊ
+	// çº¿ç¨‹è¿‡ç¨‹å‚æ•°è§£å†³æ–¹æ¡ˆï¼šè™šåŸºç±»æŒ‡é’ˆï¼Œè¿‡ç¨‹ç±»ç»§æ‰¿è™šåŸºç±»ï¼Œé€šè¿‡å¼ºåˆ¶ç±»å‹è½¬æ¢ï¼Œåœ¨è¿‡ç¨‹å‡½æ•°ä¸­è®¿é—®
 };
 
-// Ïß³Ì¹¹Ôìº¯Êı
+// çº¿ç¨‹æ„é€ å‡½æ•°
 Thread::Thread(ThreadPool *threadPool)
 {
-	/* shared_ptrĞèÒªÎ¬»¤ÒıÓÃ¼ÆÊı£¬Èôµ÷ÓÃ¹¹Ôìº¯Êı£¨¼´Í¨¹ınew±í´ïÊ½´´½¨¶ÔÏó£¬Ö®ºó´«µİ¸øshared_ptr£©£¬
-	Ò»¹²Á½´ÎÄÚ´æÉêÇë£¬ÏÈÉêÇë¶ÔÏóÄÚ´æ£¬ÔÙÉêÇë¿ØÖÆ¿éÄÚ´æ£¬¶ÔÏóÄÚ´æºÍ¿ØÖÆ¿éÄÚ´æ²»Á¬Ğø¡£
-	¶øÊ¹ÓÃmake_shared·½·¨Ö»ÉêÇëÒ»´ÎÄÚ´æ£¬¶ÔÏóÄÚ´æºÍ¿ØÖÆ¿éÄÚ´æÔÚÒ»Æğ¡£ */
+	/* shared_ptréœ€è¦ç»´æŠ¤å¼•ç”¨è®¡æ•°ï¼Œè‹¥è°ƒç”¨æ„é€ å‡½æ•°ï¼ˆå³é€šè¿‡newè¡¨è¾¾å¼åˆ›å»ºå¯¹è±¡ï¼Œä¹‹åä¼ é€’ç»™shared_ptrï¼‰ï¼Œ
+	ä¸€å…±ä¸¤æ¬¡å†…å­˜ç”³è¯·ï¼Œå…ˆç”³è¯·å¯¹è±¡å†…å­˜ï¼Œå†ç”³è¯·æ§åˆ¶å—å†…å­˜ï¼Œå¯¹è±¡å†…å­˜å’Œæ§åˆ¶å—å†…å­˜ä¸è¿ç»­ã€‚
+	è€Œä½¿ç”¨make_sharedæ–¹æ³•åªç”³è¯·ä¸€æ¬¡å†…å­˜ï¼Œå¯¹è±¡å†…å­˜å’Œæ§åˆ¶å—å†…å­˜åœ¨ä¸€èµ·ã€‚ */
 	threadData = std::make_shared<ThreadStructure>();
-	threadData->threadPool = threadPool;	// Ö¸ÏòÏß³Ì³Ø£¬±ãÓÚ×Ô¶¯µ÷ÓÃ»ñÈ¡Ïß³Ì³ØÈÎÎñ¶ÓÁĞÖĞµÄÈÎÎñ
-	setCloseStatus(false);	// ÉèÖÃÏß³ÌÎ´¹Ø±Õ
-	setRunStatus(false);	// ÉèÖÃÏß³ÌÎ´ÔËĞĞ
-	setInterveneStatus(true);	// ÔÊĞí¹ÜÀíÏß³Ì·ÖÅäÈÎÎñ
-	threadData->thread = std::thread(&Thread::execute, this);	// ´´½¨thread£¬ÔÚÆäÖĞµ÷ÓÃthis¶ÔÏóµÄexecute·½·¨
+	threadData->threadPool = threadPool;	// æŒ‡å‘çº¿ç¨‹æ± ï¼Œä¾¿äºè‡ªåŠ¨è°ƒç”¨è·å–çº¿ç¨‹æ± ä»»åŠ¡é˜Ÿåˆ—ä¸­çš„ä»»åŠ¡
+	setCloseStatus(false);	// è®¾ç½®çº¿ç¨‹æœªå…³é—­
+	setRunStatus(false);	// è®¾ç½®çº¿ç¨‹æœªè¿è¡Œ
+	setInterveneStatus(true);	// å…è®¸ç®¡ç†çº¿ç¨‹åˆ†é…ä»»åŠ¡
+	threadData->thread = std::thread(&Thread::execute, this);	// åˆ›å»ºthreadï¼Œåœ¨å…¶ä¸­è°ƒç”¨thiså¯¹è±¡çš„executeæ–¹æ³•
 }
 
-// Ïß³ÌÎö¹¹º¯Êı
+// çº¿ç¨‹ææ„å‡½æ•°
 Thread::~Thread()
 {
 	destroy();
 }
 
-// ÉèÖÃÏß³Ì¹Ø±Õ×´Ì¬
+// è®¾ç½®çº¿ç¨‹å…³é—­çŠ¶æ€
 inline void Thread::setCloseStatus(bool bClosed)
 {
 	threadData->bClosed = bClosed;
 }
 
-// »ñÈ¡Ïß³Ì¹Ø±Õ×´Ì¬
+// è·å–çº¿ç¨‹å…³é—­çŠ¶æ€
 inline bool Thread::getCloseStatus() const
 {
 	return threadData->bClosed;
 }
 
-// ÉèÖÃÏß³ÌÔËĞĞ×´Ì¬
+// è®¾ç½®çº¿ç¨‹è¿è¡ŒçŠ¶æ€
 inline void Thread::setRunStatus(bool bRunning)
 {
 	threadData->bRunning = bRunning;
 }
 
-// »ñÈ¡Ïß³ÌÔËĞĞ×´Ì¬
+// è·å–çº¿ç¨‹è¿è¡ŒçŠ¶æ€
 inline bool Thread::getRunStatus() const
 {
 	return threadData->bRunning;
 }
 
-// ÉèÖÃÏß³Ì½éÈë×´Ì¬
+// è®¾ç½®çº¿ç¨‹ä»‹å…¥çŠ¶æ€
 inline void Thread::setInterveneStatus(bool bIntervening)
 {
 	threadData->bIntervening = bIntervening;
 }
 
-// »ñÈ¡Ïß³Ì½éÈë×´Ì¬
+// è·å–çº¿ç¨‹ä»‹å…¥çŠ¶æ€
 inline bool Thread::getInterveneStatus() const
 {
 	return threadData->bIntervening;
 }
 
-// Îª¹¤×÷Ïß³ÌÅäÖÃĞÂÈÎÎñ
+// ä¸ºå·¥ä½œçº¿ç¨‹é…ç½®æ–°ä»»åŠ¡
 bool Thread::configure(TaskPair &&task)
 {
-	// ÈôÏß³Ì´¦ÓÚÔËĞĞ×´Ì¬£¬ËµÃ÷ÕıÔÚÖ´ĞĞÈÎÎñ£¬ÅäÖÃĞÂÈÎÎñÊ§°Ü
+	// è‹¥çº¿ç¨‹å¤„äºè¿è¡ŒçŠ¶æ€ï¼Œè¯´æ˜æ­£åœ¨æ‰§è¡Œä»»åŠ¡ï¼Œé…ç½®æ–°ä»»åŠ¡å¤±è´¥
 	if (getRunStatus())
 		return false;
-	threadData->task = std::move(task);	// ¸³Óè¹¤×÷Ïß³ÌÈÎÎñº¯Êı×Ó
+	threadData->task = std::move(task);	// èµ‹äºˆå·¥ä½œçº¿ç¨‹ä»»åŠ¡å‡½æ•°å­
 	//threadData->vpParameters = vpParameters;
 	return true;
 }
 
-// »½ĞÑ¹¤×÷Ïß³Ì
+// å”¤é†’å·¥ä½œçº¿ç¨‹
 bool Thread::start()
 {
-	if (getRunStatus())	// Èô¹¤×÷Ïß³Ì´¦ÓÚÔËĞĞ×´Ì¬£¬±êÖ¾×ÅÒÑ¾­ÅäÖÃÈÎÎñ
+	if (getRunStatus())	// è‹¥å·¥ä½œçº¿ç¨‹å¤„äºè¿è¡ŒçŠ¶æ€ï¼Œæ ‡å¿—ç€å·²ç»é…ç½®ä»»åŠ¡
 		return false;
-	threadData->signal.notify_one();	// Í¨¹ıÌõ¼ş±äÁ¿·¢ËÍĞÅºÅ£¬»½ĞÑ¹¤×÷Ïß³Ì
+	threadData->signal.notify_one();	// é€šè¿‡æ¡ä»¶å˜é‡å‘é€ä¿¡å·ï¼Œå”¤é†’å·¥ä½œçº¿ç¨‹
 	return true;
 }
 
-// Ïú»Ù¹¤×÷Ïß³Ì
+// é”€æ¯å·¥ä½œçº¿ç¨‹
 void Thread::destroy()
 {
-	// Èô¹¤×÷Ïß³ÌÒÑ¾­Ïú»Ù£¬ºöÂÔÒÔÏÂ²½Öè
+	// è‹¥å·¥ä½œçº¿ç¨‹å·²ç»é”€æ¯ï¼Œå¿½ç•¥ä»¥ä¸‹æ­¥éª¤
 	if (getCloseStatus())
 		return;
-	setCloseStatus(true);	// ÉèÖÃ¹¤×÷Ïß³ÌÎª¹Ø±Õ×´Ì¬£¬¼´Ïú»Ù×´Ì¬
-	// ¹¤×÷Ïß³Ì¿ÉÄÜ´¦ÓÚ×èÈû×´Ì¬£¬Í¨¹ıÌõ¼ş±äÁ¿·¢ËÍĞÅºÅ»½ĞÑ¹¤×÷Ïß³Ì
+	setCloseStatus(true);	// è®¾ç½®å·¥ä½œçº¿ç¨‹ä¸ºå…³é—­çŠ¶æ€ï¼Œå³é”€æ¯çŠ¶æ€
+	// å·¥ä½œçº¿ç¨‹å¯èƒ½å¤„äºé˜»å¡çŠ¶æ€ï¼Œé€šè¿‡æ¡ä»¶å˜é‡å‘é€ä¿¡å·å”¤é†’å·¥ä½œçº¿ç¨‹
 	threadData->signal.notify_one();
-	// µÈ´ıÎ´Ö´ĞĞÍê³ÉµÄ¹¤×÷Ïß³Ì½áÊø
+	// ç­‰å¾…æœªæ‰§è¡Œå®Œæˆçš„å·¥ä½œçº¿ç¨‹ç»“æŸ
 	if (threadData->thread.joinable())
 		threadData->thread.join();
-	// Ô¤ÁôµÈ´ıÊ±¼ä
+	// é¢„ç•™ç­‰å¾…æ—¶é—´
 	//std::this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
-// »ñÈ¡¹¤×÷Ïß³Ìid
+// è·å–å·¥ä½œçº¿ç¨‹id
 std::thread::id Thread::getThreadId() const
 {
 	return threadData->thread.get_id();
@@ -125,58 +125,58 @@ std::thread::id Thread::getThreadId() const
 //	return threadData->vpParameters;
 //}
 
-// ·µ»ØÏß³ÌÊÇ·ñ´¦ÓÚ¿ÕÏĞ×´Ì¬
+// è¿”å›çº¿ç¨‹æ˜¯å¦å¤„äºç©ºé—²çŠ¶æ€
 bool Thread::isFree() const
 {
 	return getInterveneStatus();
 }
 
-// ¹¤×÷Ïß³ÌÌå
+// å·¥ä½œçº¿ç¨‹ä½“
 void Thread::execute()
 {
-	// µ÷ÓÃmem_fun»ñÈ¡º¯Êı¶ÔÏóÊÊÅäÆ÷mem_fun1_tÀàĞÍµÄ¶ÔÏógetTask£¬´Ë¶ÔÏóÖĞ±£´æÖ¸ÏòThreadPool::getTaskµÄÖ¸Õë£¬²¢ÇÒÖØÔØÔËËã·ûoperator()
+	// è°ƒç”¨mem_funè·å–å‡½æ•°å¯¹è±¡é€‚é…å™¨mem_fun1_tç±»å‹çš„å¯¹è±¡getTaskï¼Œæ­¤å¯¹è±¡ä¸­ä¿å­˜æŒ‡å‘ThreadPool::getTaskçš„æŒ‡é’ˆï¼Œå¹¶ä¸”é‡è½½è¿ç®—ç¬¦operator()
 	auto &&getTask = std::mem_fun(&ThreadPool::getTask);
-	std::unique_lock<std::mutex> threadLocker(threadData->threadMutex);	// ´´½¨unique_lock»¥³âËø£¬²¢ÔÚ¹¹Ôìº¯ÊıÖĞ»ñÈ¡»¥³âËø
-	threadData->signal.wait(threadLocker);	// »ñÈ¡»¥³âËø£¬ÈôÖ®Ç°ÒÑ¾­»ñÈ¡¹ı»¥³âËø£¬×èÈûÏß³Ì£¬µÈ´ıÌõ¼ş±äÁ¿µÄ»½ĞÑĞÅºÅ
-	while (!getCloseStatus())	// ¹¤×÷Ïß³ÌÌåÍË³öÍ¨µÀ
+	std::unique_lock<std::mutex> threadLocker(threadData->threadMutex);	// åˆ›å»ºunique_lockäº’æ–¥é”ï¼Œå¹¶åœ¨æ„é€ å‡½æ•°ä¸­è·å–äº’æ–¥é”
+	threadData->signal.wait(threadLocker);	// è·å–äº’æ–¥é”ï¼Œè‹¥ä¹‹å‰å·²ç»è·å–è¿‡äº’æ–¥é”ï¼Œé˜»å¡çº¿ç¨‹ï¼Œç­‰å¾…æ¡ä»¶å˜é‡çš„å”¤é†’ä¿¡å·
+	while (!getCloseStatus())	// å·¥ä½œçº¿ç¨‹ä½“é€€å‡ºé€šé“
 	{
-		setRunStatus(true);	// ÉèÖÃÏß³ÌÎªÔËĞĞ×´Ì¬
+		setRunStatus(true);	// è®¾ç½®çº¿ç¨‹ä¸ºè¿è¡ŒçŠ¶æ€
 		try
 		{
-			if (threadData->task.first)	// ÈôÈÎÎñº¯Êı×Ó²»Îª¿Õ
-				threadData->task.first();	// Ö´ĞĞÈÎÎñº¯Êı×Ó
+			if (threadData->task.first)	// è‹¥ä»»åŠ¡å‡½æ•°å­ä¸ä¸ºç©º
+				threadData->task.first();	// æ‰§è¡Œä»»åŠ¡å‡½æ•°å­
 			else
-				run();	// Ö´ĞĞÄ¬ÈÏÈÎÎñº¯Êı
-			if (threadData->task.second)	// Èô»Øµ÷º¯Êı×Ó²»Îª¿Õ
-				threadData->task.second();	// Ö´ĞĞ»Øµ÷º¯Êı×Ó
+				run();	// æ‰§è¡Œé»˜è®¤ä»»åŠ¡å‡½æ•°
+			if (threadData->task.second)	// è‹¥å›è°ƒå‡½æ•°å­ä¸ä¸ºç©º
+				threadData->task.second();	// æ‰§è¡Œå›è°ƒå‡½æ•°å­
 			else
-				callback();	// Ö´ĞĞÄ¬ÈÏ»Øµ÷º¯Êı
+				callback();	// æ‰§è¡Œé»˜è®¤å›è°ƒå‡½æ•°
 		}
-		catch (std::exception exception)	// ²¶»ñÖ´ĞĞÈÎÎñº¯Êı×ÓÊ±³öÏÖµÄÒì³££¬·ÀÖ¹Ïß³ÌĞ¹Â©
+		catch (std::exception exception)	// æ•è·æ‰§è¡Œä»»åŠ¡å‡½æ•°å­æ—¶å‡ºç°çš„å¼‚å¸¸ï¼Œé˜²æ­¢çº¿ç¨‹æ³„æ¼
 		{
 			std::cerr << exception.what() << std::endl;
 		}
 		setRunStatus(false);
-		/* ÒÔthreadData->threadPool->getTask(this->shared_from_this())µÄĞÎÊ½µ÷ÓÃThreadPool::getTaskº¯Êı»ñÈ¡Ïß³Ì³ØÈÎÎñ¶ÓÁĞÖĞµÄÈÎÎñ
-		ÈôÎ´³É¹¦»ñÈ¡ÈÎÎñ£¬×èÈûÏß³Ì£¬µÈ´ıÌõ¼ş±äÁ¿µÄ»½ĞÑĞÅºÅ */
+		/* ä»¥threadData->threadPool->getTask(this->shared_from_this())çš„å½¢å¼è°ƒç”¨ThreadPool::getTaskå‡½æ•°è·å–çº¿ç¨‹æ± ä»»åŠ¡é˜Ÿåˆ—ä¸­çš„ä»»åŠ¡
+		è‹¥æœªæˆåŠŸè·å–ä»»åŠ¡ï¼Œé˜»å¡çº¿ç¨‹ï¼Œç­‰å¾…æ¡ä»¶å˜é‡çš„å”¤é†’ä¿¡å· */
 		if (!(threadData->threadPool
 			&& getTask(threadData->threadPool, this->shared_from_this())))
 		{
-			if (getCloseStatus())	// ¹¤×÷Ïß³ÌÍË³öÍ¨µÀ
+			if (getCloseStatus())	// å·¥ä½œçº¿ç¨‹é€€å‡ºé€šé“
 				break;
-			setInterveneStatus(true);	// ÉèÖÃÔÊĞí¹ÜÀíÏß³Ì·ÖÅäÈÎÎñ
+			setInterveneStatus(true);	// è®¾ç½®å…è®¸ç®¡ç†çº¿ç¨‹åˆ†é…ä»»åŠ¡
 			threadData->signal.wait(threadLocker);
 			setInterveneStatus(false);
 		}
 	}
 }
 
-// Ïß³ÌÄ¬ÈÏÈÎÎñº¯Êı£¬ÓÃÓÚ¼Ì³ĞÀ©Õ¹Ïß³Ì£¬ĞÎ³É¹³×Ó
+// çº¿ç¨‹é»˜è®¤ä»»åŠ¡å‡½æ•°ï¼Œç”¨äºç»§æ‰¿æ‰©å±•çº¿ç¨‹ï¼Œå½¢æˆé’©å­
 void Thread::run()
 {
 }
 
-// Ïß³ÌÄ¬ÈÏ»Øµ÷º¯Êı£¬ÓÃÓÚ¼Ì³ĞÀ©Õ¹Ïß³Ì£¬ĞÎ³É¹³×Ó
+// çº¿ç¨‹é»˜è®¤å›è°ƒå‡½æ•°ï¼Œç”¨äºç»§æ‰¿æ‰©å±•çº¿ç¨‹ï¼Œå½¢æˆé’©å­
 void Thread::callback()
 {
 }

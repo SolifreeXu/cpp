@@ -7,115 +7,115 @@
 #include <atomic>
 #include <condition_variable>
 
-// Ïß³Ì³ØÊı¾İ½á¹¹Ìå
+// çº¿ç¨‹æ± æ•°æ®ç»“æ„ä½“
 struct ThreadPoolStructure
 {
-	std::vector<std::shared_ptr<Thread>> vThreads;		// ¹¤×÷Ïß³Ì±í
-	Queue<TaskPair> tasks;				// ÈÎÎñ¶ÓÁĞ
-	std::thread thread;					// Ïß³Ì
-	std::mutex threadMutex;				// Ïß³Ì»¥³âÔª
-	std::condition_variable signal;		// Ìõ¼ş±äÁ¿
-	std::atomic_bool bClosed;			// ¹Ø±Õ±ê¼Ç
-	std::atomic_uint maxThreads;		// ×î´óÏß³ÌÊı
-	std::atomic_uint freeThreads;		// ¿ÕÏĞÏß³ÌÊı
+	std::vector<std::shared_ptr<Thread>> vThreads;		// å·¥ä½œçº¿ç¨‹è¡¨
+	Queue<TaskPair> tasks;				// ä»»åŠ¡é˜Ÿåˆ—
+	std::thread thread;					// çº¿ç¨‹
+	std::mutex threadMutex;				// çº¿ç¨‹äº’æ–¥å…ƒ
+	std::condition_variable signal;		// æ¡ä»¶å˜é‡
+	std::atomic_bool bClosed;			// å…³é—­æ ‡è®°
+	std::atomic_uint maxThreads;		// æœ€å¤§çº¿ç¨‹æ•°
+	std::atomic_uint freeThreads;		// ç©ºé—²çº¿ç¨‹æ•°
 	//std::atomic_int timeSlice;
 };
 
-// Ïß³Ì³Ø¹¹Ôìº¯Êı
+// çº¿ç¨‹æ± æ„é€ å‡½æ•°
 ThreadPool::ThreadPool(unsigned nThread, unsigned maxThreads)
 {
 	threadPoolData = std::make_unique<ThreadPoolStructure>();
-	setCloseStatus(false);	// ÉèÖÃÏß³ÌÎ´¹Ø±Õ
+	setCloseStatus(false);	// è®¾ç½®çº¿ç¨‹æœªå…³é—­
 	//setTimeSlice(timeSlice);
-	setMaxThreads(maxThreads);	// ÉèÖÃ×î´óÏß³ÌÊıÁ¿
-	if (nThread > getMaxThreads())	// ±£Ö¤¹¤×÷Ïß³Ì²»³¬¹ı×î´óÏß³ÌÊı
+	setMaxThreads(maxThreads);	// è®¾ç½®æœ€å¤§çº¿ç¨‹æ•°é‡
+	if (nThread > getMaxThreads())	// ä¿è¯å·¥ä½œçº¿ç¨‹ä¸è¶…è¿‡æœ€å¤§çº¿ç¨‹æ•°
 		nThread = getMaxThreads();
-	threadPoolData->vThreads.reserve(nThread);	// Ô¤·ÖÅäÄÚ´æ¿Õ¼ä£¬µ«ÊÇ²»³õÊ¼»¯ÄÚ´æ£¬¼´Î´µ÷ÓÃ¹¹Ôìº¯Êı
-	/* shared_ptrĞèÒªÎ¬»¤ÒıÓÃ¼ÆÊı£¬Èôµ÷ÓÃ¹¹Ôìº¯Êı£¨¼´Í¨¹ınew±í´ïÊ½´´½¨¶ÔÏó£¬Ö®ºó´«µİ¸øshared_ptr£©£¬
-	Ò»¹²Á½´ÎÄÚ´æÉêÇë£¬ÏÈÉêÇë¶ÔÏóÄÚ´æ£¬ÔÙÉêÇë¿ØÖÆ¿éÄÚ´æ£¬¶ÔÏóÄÚ´æºÍ¿ØÖÆ¿éÄÚ´æ²»Á¬Ğø¡£
-	¶øÊ¹ÓÃmake_shared·½·¨Ö»ÉêÇëÒ»´ÎÄÚ´æ£¬¶ÔÏóÄÚ´æºÍ¿ØÖÆ¿éÄÚ´æÔÚÒ»Æğ¡£ */
+	threadPoolData->vThreads.reserve(nThread);	// é¢„åˆ†é…å†…å­˜ç©ºé—´ï¼Œä½†æ˜¯ä¸åˆå§‹åŒ–å†…å­˜ï¼Œå³æœªè°ƒç”¨æ„é€ å‡½æ•°
+	/* shared_ptréœ€è¦ç»´æŠ¤å¼•ç”¨è®¡æ•°ï¼Œè‹¥è°ƒç”¨æ„é€ å‡½æ•°ï¼ˆå³é€šè¿‡newè¡¨è¾¾å¼åˆ›å»ºå¯¹è±¡ï¼Œä¹‹åä¼ é€’ç»™shared_ptrï¼‰ï¼Œ
+	ä¸€å…±ä¸¤æ¬¡å†…å­˜ç”³è¯·ï¼Œå…ˆç”³è¯·å¯¹è±¡å†…å­˜ï¼Œå†ç”³è¯·æ§åˆ¶å—å†…å­˜ï¼Œå¯¹è±¡å†…å­˜å’Œæ§åˆ¶å—å†…å­˜ä¸è¿ç»­ã€‚
+	è€Œä½¿ç”¨make_sharedæ–¹æ³•åªç”³è¯·ä¸€æ¬¡å†…å­˜ï¼Œå¯¹è±¡å†…å­˜å’Œæ§åˆ¶å—å†…å­˜åœ¨ä¸€èµ·ã€‚ */
 	for (unsigned i = 0; i < nThread; ++i)
 		threadPoolData->vThreads.push_back(std::make_shared<Thread>(this));
-	threadPoolData->freeThreads = threadPoolData->vThreads.size();	// ÉèÖÃ¿ÕÏĞÏß³ÌÊıÁ¿
-	threadPoolData->thread = std::thread(&ThreadPool::execute, this);	// ´´½¨thread£¬ÔÚÆäÖĞµ÷ÓÃthis¶ÔÏóµÄexecute·½·¨
+	threadPoolData->freeThreads = threadPoolData->vThreads.size();	// è®¾ç½®ç©ºé—²çº¿ç¨‹æ•°é‡
+	threadPoolData->thread = std::thread(&ThreadPool::execute, this);	// åˆ›å»ºthreadï¼Œåœ¨å…¶ä¸­è°ƒç”¨thiså¯¹è±¡çš„executeæ–¹æ³•
 }
 
-// Ïß³Ì³ØÎö¹¹º¯Êı
+// çº¿ç¨‹æ± ææ„å‡½æ•°
 ThreadPool::~ThreadPool()
 {
 	destroy();
 }
 
-// ÉèÖÃÏß³Ì³Ø¹Ø±Õ×´Ì¬£¬ÓÃÓÚ¸Õ¿ªÊ¼ÉèÖÃÏß³Ì³Ø×´Ì¬ºÍ¹Ø±ÕÏß³Ì³Ø
+// è®¾ç½®çº¿ç¨‹æ± å…³é—­çŠ¶æ€ï¼Œç”¨äºåˆšå¼€å§‹è®¾ç½®çº¿ç¨‹æ± çŠ¶æ€å’Œå…³é—­çº¿ç¨‹æ± 
 inline void ThreadPool::setCloseStatus(bool bClosed)
 {
 	threadPoolData->bClosed = bClosed;
 }
 
-// »ñÈ¡Ïß³Ì³ØµÄ¹Ø±Õ×´Ì¬
+// è·å–çº¿ç¨‹æ± çš„å…³é—­çŠ¶æ€
 inline bool ThreadPool::getCloseStatus() const
 {
 	return threadPoolData->bClosed;
 }
 
-// »ñÈ¡Ó²¼şÉè±¸²¢·¢ÔËĞĞµÄ×î´óÏß³ÌÊıÁ¿
+// è·å–ç¡¬ä»¶è®¾å¤‡å¹¶å‘è¿è¡Œçš„æœ€å¤§çº¿ç¨‹æ•°é‡
 unsigned ThreadPool::getMaxConcurrency()
 {
 	return std::thread::hardware_concurrency();
 }
 
-// ÉèÖÃÏß³Ì³Ø¹¤×÷Ïß³ÌÊıÁ¿
+// è®¾ç½®çº¿ç¨‹æ± å·¥ä½œçº¿ç¨‹æ•°é‡
 bool ThreadPool::setCurrentThreads(unsigned nThread)
 {
 	if (nThread > getMaxThreads())
 		return false;
 	auto result = nThread - threadPoolData->vThreads.size();
-	if (result > 0)	// Ôö¼Ó¹¤×÷Ïß³Ì
+	if (result > 0)	// å¢åŠ å·¥ä½œçº¿ç¨‹
 	{
-		std::lock_guard<std::mutex> threadLocker(threadPoolData->threadMutex);	// ËÀËø
-		threadPoolData->vThreads.reserve(nThread);	// Ôö´ó¹¤×÷Ïß³Ì±íÈİÁ¿
-													// Ïò¹¤×÷Ïß³Ì±íÖĞÌí¼Ó¹¤×÷Ïß³Ì
+		std::lock_guard<std::mutex> threadLocker(threadPoolData->threadMutex);	// æ­»é”
+		threadPoolData->vThreads.reserve(nThread);	// å¢å¤§å·¥ä½œçº¿ç¨‹è¡¨å®¹é‡
+													// å‘å·¥ä½œçº¿ç¨‹è¡¨ä¸­æ·»åŠ å·¥ä½œçº¿ç¨‹
 		for (unsigned i = 0; i < result; ++i)
 			threadPoolData->vThreads.push_back(std::make_shared<Thread>(this));
 		threadPoolData->freeThreads += result;
-		// Èç¹ûÎ´Ìí¼Ó¹¤×÷Ïß³ÌÊ±£¬¿ÕÏĞÏß³Ì±íÎª¿Õ£¬»½ĞÑ×èÈûµÄ¹ÜÀíÏß³Ì
+		// å¦‚æœæœªæ·»åŠ å·¥ä½œçº¿ç¨‹æ—¶ï¼Œç©ºé—²çº¿ç¨‹è¡¨ä¸ºç©ºï¼Œå”¤é†’é˜»å¡çš„ç®¡ç†çº¿ç¨‹
 		if (threadPoolData->freeThreads == result)
 			threadPoolData->signal.notify_one();
 		return true;
 	}
-	else if (result < 0)	// ¼õÉÙ¹¤×÷Ïß³Ì£¨Î´ÖÆ¶¨²ßÂÔ£©
+	else if (result < 0)	// å‡å°‘å·¥ä½œçº¿ç¨‹ï¼ˆæœªåˆ¶å®šç­–ç•¥ï¼‰
 	{
 		return false;
 	}
 	return false;
 }
 
-// »ñÈ¡Ïß³Ì³ØÖĞµ±Ç°¹¤×÷Ïß³ÌÊıÁ¿
+// è·å–çº¿ç¨‹æ± ä¸­å½“å‰å·¥ä½œçº¿ç¨‹æ•°é‡
 unsigned ThreadPool::getCurrentThreads() const
 {
-	//std::lock_guard<std::mutex> threadLocker(threadPoolData->threadMutex);	// ËÀËø
+	//std::lock_guard<std::mutex> threadLocker(threadPoolData->threadMutex);	// æ­»é”
 	return threadPoolData->vThreads.size();
 }
 
-// »ñÈ¡´ıÍê³ÉÈÎÎñ¶ÓÁĞÖĞµÄÈÎÎñÊı
+// è·å–å¾…å®Œæˆä»»åŠ¡é˜Ÿåˆ—ä¸­çš„ä»»åŠ¡æ•°
 unsigned ThreadPool::getTasks() const
 {
 	return threadPoolData->tasks.size();
 }
 
-// ÉèÖÃÏß³Ì³Ø¹¤×÷Ïß³ÌµÄ×î´óÊıÁ¿
+// è®¾ç½®çº¿ç¨‹æ± å·¥ä½œçº¿ç¨‹çš„æœ€å¤§æ•°é‡
 void ThreadPool::setMaxThreads(unsigned maxThreads)
 {
 	threadPoolData->maxThreads = maxThreads ? maxThreads : 1;
 }
 
-// »ñÈ¡Ïß³Ì³Ø×î´ó¹¤×÷Ïß³ÌÊıÁ¿
+// è·å–çº¿ç¨‹æ± æœ€å¤§å·¥ä½œçº¿ç¨‹æ•°é‡
 unsigned ThreadPool::getMaxThreads() const
 {
 	return threadPoolData->maxThreads;
 }
 
-//// ÉèÖÃÏß³Ì³Ø¹ÜÀíÆ÷ÂÖÑ¯Ê±¼äÆ¬
+//// è®¾ç½®çº¿ç¨‹æ± ç®¡ç†å™¨è½®è¯¢æ—¶é—´ç‰‡
 //bool ThreadPool::setTimeSlice(unsigned timeSlice)
 //{
 //	if (timeSlice < 0)
@@ -124,31 +124,31 @@ unsigned ThreadPool::getMaxThreads() const
 //	return true;
 //}
 //
-//// »ñÈ¡Ïß³Ì³Ø¹ÜÀíÆ÷ÂÖÑ¯Ê±¼äÆ¬
+//// è·å–çº¿ç¨‹æ± ç®¡ç†å™¨è½®è¯¢æ—¶é—´ç‰‡
 //unsigned ThreadPool::getTimeSlice() const
 //{
 //	return threadPoolData->timeSlice;
 //}
 
-// ÏòÈÎÎñ¶ÓÁĞÖĞÌí¼Óµ¥ÈÎÎñ
+// å‘ä»»åŠ¡é˜Ÿåˆ—ä¸­æ·»åŠ å•ä»»åŠ¡
 void ThreadPool::pushTask(std::function<void()> run, std::function<void()> callback)
 {
 	threadPoolData->tasks.push(TaskPair(std::move(run), std::move(callback)));
-	// Î´Ìí¼ÓÈÎÎñÖ®Ç°£¬ÈÎÎñ¶ÓÁĞÎª¿ÕÊ±£¬»½ĞÑ×èÈûµÄ¹ÜÀíÏß³Ì
+	// æœªæ·»åŠ ä»»åŠ¡ä¹‹å‰ï¼Œä»»åŠ¡é˜Ÿåˆ—ä¸ºç©ºæ—¶ï¼Œå”¤é†’é˜»å¡çš„ç®¡ç†çº¿ç¨‹
 	if (threadPoolData->tasks.size() == 1)
 		threadPoolData->signal.notify_one();
 }
 
-// ÏòÈÎÎñ¶ÓÁĞÖĞÌí¼Óµ¥ÈÎÎñ
+// å‘ä»»åŠ¡é˜Ÿåˆ—ä¸­æ·»åŠ å•ä»»åŠ¡
 void ThreadPool::pushTask(TaskPair &&task)
 {
 	threadPoolData->tasks.push(std::move(task));
-	// Î´Ìí¼ÓÈÎÎñÖ®Ç°£¬ÈÎÎñ¶ÓÁĞÎª¿ÕÊ±£¬»½ĞÑ×èÈûµÄ¹ÜÀíÏß³Ì
+	// æœªæ·»åŠ ä»»åŠ¡ä¹‹å‰ï¼Œä»»åŠ¡é˜Ÿåˆ—ä¸ºç©ºæ—¶ï¼Œå”¤é†’é˜»å¡çš„ç®¡ç†çº¿ç¨‹
 	if (threadPoolData->tasks.size() == 1)
 		threadPoolData->signal.notify_one();
 }
 
-// ÏòÈÎÎñ¶ÓÁĞÖĞÅúÁ¿Ìí¼ÓÈÎÎñ
+// å‘ä»»åŠ¡é˜Ÿåˆ—ä¸­æ‰¹é‡æ·»åŠ ä»»åŠ¡
 void ThreadPool::pushTask(std::list<TaskPair> &tasks)
 {
 	auto size = tasks.size();
@@ -157,17 +157,17 @@ void ThreadPool::pushTask(std::list<TaskPair> &tasks)
 		threadPoolData->signal.notify_one();
 }
 
-// Ïú»ÙÏß³Ì³Ø
+// é”€æ¯çº¿ç¨‹æ± 
 void ThreadPool::destroy()
 {
-	if (getCloseStatus())	// ÈôÒÑ¾­Ïú»ÙÏß³Ì³Ø£¬ºöÂÔÒÔÏÂ²½Öè
+	if (getCloseStatus())	// è‹¥å·²ç»é”€æ¯çº¿ç¨‹æ± ï¼Œå¿½ç•¥ä»¥ä¸‹æ­¥éª¤
 		return;
-	threadPoolData->thread.detach();	// ·ÖÀëÏß³Ì³Ø¹ÜÀíÏß³Ì
-	setCloseStatus(true);	// ÉèÖÃÏß³Ì³ØÎª¹Ø±Õ×´Ì¬£¬¼´Ïú»Ù×´Ì¬
-	threadPoolData->signal.notify_one();	// »½ĞÑ×èÈûµÄ¹ÜÀíÏß³Ì
+	threadPoolData->thread.detach();	// åˆ†ç¦»çº¿ç¨‹æ± ç®¡ç†çº¿ç¨‹
+	setCloseStatus(true);	// è®¾ç½®çº¿ç¨‹æ± ä¸ºå…³é—­çŠ¶æ€ï¼Œå³é”€æ¯çŠ¶æ€
+	threadPoolData->signal.notify_one();	// å”¤é†’é˜»å¡çš„ç®¡ç†çº¿ç¨‹
 	std::unique_lock<std::mutex> threadLocker(threadPoolData->threadMutex);
 	//std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	// ±éÀú¹¤×÷Ïß³Ì±í£¬Ïú»ÙËùÓĞ¹¤×÷Ïß³Ì
+	// éå†å·¥ä½œçº¿ç¨‹è¡¨ï¼Œé”€æ¯æ‰€æœ‰å·¥ä½œçº¿ç¨‹
 	/*for each (auto &thread in threadPoolData->vThreads)
 	thread->destroy();*/
 	/*for (auto it = threadPoolData->vThreads.cbegin(); it != threadPoolData->vThreads.cend(); ++it)
@@ -177,60 +177,60 @@ void ThreadPool::destroy()
 	threadLocker.unlock();
 }
 
-bool ThreadPool::getTask(std::shared_ptr<Thread> &thread)
+bool ThreadPool::getTask(std::shared_ptr<Thread> thread)
 {
 	std::unique_lock<std::mutex> taskLocker(threadPoolData->tasks.mutex());
-	if (!threadPoolData->tasks.empty())	// ÈÎÎñ¶ÓÁĞ·Ç¿Õ
+	if (!threadPoolData->tasks.empty())	// ä»»åŠ¡é˜Ÿåˆ—éç©º
 	{
-		thread->configure(std::move(threadPoolData->tasks.front()));	// Îª¹¤×÷Ïß³ÌÅäÖÃĞÂÈÎÎñ
-		threadPoolData->tasks.pop();	// µ¯³öÒÑ¾­ÅäÖÃ¹ıµÄÈÎÎñ
+		thread->configure(std::move(threadPoolData->tasks.front()));	// ä¸ºå·¥ä½œçº¿ç¨‹é…ç½®æ–°ä»»åŠ¡
+		threadPoolData->tasks.pop();	// å¼¹å‡ºå·²ç»é…ç½®è¿‡çš„ä»»åŠ¡
 		return true;
 	}
 	taskLocker.unlock();
-	// ÈÎÎñ¶ÓÁĞÎª¿Õ£¬¿ÕÏĞÏß³ÌÊıÁ¿¼ÓÒ»£¬ÈôÎ´Ôö¼Ó¿ÕÏĞÏß³ÌÖ®Ç°£¬¿ÕÏĞÏß³ÌÊıÁ¿ÎªÁãÊ±£¬»½ĞÑ×èÈûµÄ¹ÜÀíÏß³Ì
+	// ä»»åŠ¡é˜Ÿåˆ—ä¸ºç©ºï¼Œç©ºé—²çº¿ç¨‹æ•°é‡åŠ ä¸€ï¼Œè‹¥æœªå¢åŠ ç©ºé—²çº¿ç¨‹ä¹‹å‰ï¼Œç©ºé—²çº¿ç¨‹æ•°é‡ä¸ºé›¶æ—¶ï¼Œå”¤é†’é˜»å¡çš„ç®¡ç†çº¿ç¨‹
 	if (++threadPoolData->freeThreads == 1)
 		threadPoolData->signal.notify_one();
 	return false;
 }
 
-// Ïß³Ì³Ø¹ÜÀíÏß³ÌÌå
+// çº¿ç¨‹æ± ç®¡ç†çº¿ç¨‹ä½“
 void ThreadPool::execute()
 {
 	std::unique_lock<std::mutex> threadLocker(threadPoolData->threadMutex, std::defer_lock);
 	std::unique_lock<std::mutex> taskLocker(threadPoolData->tasks.mutex(), std::defer_lock);
-	while (!getCloseStatus())	// Ïß³Ì³Ø¹ÜÀíÏß³ÌÌåÍË³öÍ¨µÀ
+	while (!getCloseStatus())	// çº¿ç¨‹æ± ç®¡ç†çº¿ç¨‹ä½“é€€å‡ºé€šé“
 	{
 		threadLocker.lock();
-		if (!threadPoolData->freeThreads)	// ÈôÎŞ¿ÕÏĞÏß³Ì
+		if (!threadPoolData->freeThreads)	// è‹¥æ— ç©ºé—²çº¿ç¨‹
 		{
-			// ×èÈû´ËÏß³Ì£¬ÔÙ´Î»ñÈ¡Ïß³ÌËø£¬µÈ´ıÌõ¼ş±äÁ¿µÄ»½ĞÑĞÅºÅ£¬Ö±µ½¿ÕÏĞÏß³ÌÊıÁ¿²»ÎªÁã»òÕß¹Ø±Õ¹ÜÀíÏß³Ì£¬ÊÍ·ÅÒ»´ÎÏß³ÌËø
+			// é˜»å¡æ­¤çº¿ç¨‹ï¼Œå†æ¬¡è·å–çº¿ç¨‹é”ï¼Œç­‰å¾…æ¡ä»¶å˜é‡çš„å”¤é†’ä¿¡å·ï¼Œç›´åˆ°ç©ºé—²çº¿ç¨‹æ•°é‡ä¸ä¸ºé›¶æˆ–è€…å…³é—­ç®¡ç†çº¿ç¨‹ï¼Œé‡Šæ”¾ä¸€æ¬¡çº¿ç¨‹é”
 			threadPoolData->signal.wait(threadLocker,
 				[this] {return threadPoolData->freeThreads || getCloseStatus(); });
-			if (getCloseStatus())	// Èô¹ÜÀíÏß³Ì±»ÉèÖÃÎª¹Ø±Õ£¬ÍË³öÑ­»·£¬½áÊø¹ÜÀíÏß³Ì
-				break;	// ÓÉÓÚunique_lockÎö¹¹Ê±×Ô¶¯ÊÍ·ÅËø£¬ÕâÀïÎŞĞèÊÖ¶¯ÊÍ·Å
+			if (getCloseStatus())	// è‹¥ç®¡ç†çº¿ç¨‹è¢«è®¾ç½®ä¸ºå…³é—­ï¼Œé€€å‡ºå¾ªç¯ï¼Œç»“æŸç®¡ç†çº¿ç¨‹
+				break;	// ç”±äºunique_lockææ„æ—¶è‡ªåŠ¨é‡Šæ”¾é”ï¼Œè¿™é‡Œæ— éœ€æ‰‹åŠ¨é‡Šæ”¾
 		}
-		// ±éÀú¹¤×÷Ïß³Ì±í£¬Îª¿ÕÏĞ¹¤×÷Ïß³Ì·ÖÅäÈÎÎñ
+		// éå†å·¥ä½œçº¿ç¨‹è¡¨ï¼Œä¸ºç©ºé—²å·¥ä½œçº¿ç¨‹åˆ†é…ä»»åŠ¡
 		for (auto it = threadPoolData->vThreads.begin(); 
 			it != threadPoolData->vThreads.end() && threadPoolData->freeThreads && !getCloseStatus(); ++it)
 		{
 			auto &thread = *it;
-			if (thread->isFree())	// Èô¹¤×÷Ïß³Ì´¦ÓÚ¿ÕÏĞ×´Ì¬
+			if (thread->isFree())	// è‹¥å·¥ä½œçº¿ç¨‹å¤„äºç©ºé—²çŠ¶æ€
 			{
 				taskLocker.lock();
-				// ÈôÈÎÎñ¶ÓÁĞÎª¿Õ£¬×èÈûÏß³Ì£¬µÈ´ıÌõ¼ş±äÁ¿µÄ»½ĞÑĞÅºÅ£¬²¢ÇÒ»½ĞÑºóÈÎÎñ¶ÓÁĞ»¹ÁôÓĞÈÎÎñ£¬Î´±»ÆäËû¹¤×÷Ïß³ÌÈ¡×ß£¬·ñÔòÔÙ´Î×èÈûÏß³Ì
+				// è‹¥ä»»åŠ¡é˜Ÿåˆ—ä¸ºç©ºï¼Œé˜»å¡çº¿ç¨‹ï¼Œç­‰å¾…æ¡ä»¶å˜é‡çš„å”¤é†’ä¿¡å·ï¼Œå¹¶ä¸”å”¤é†’åä»»åŠ¡é˜Ÿåˆ—è¿˜ç•™æœ‰ä»»åŠ¡ï¼Œæœªè¢«å…¶ä»–å·¥ä½œçº¿ç¨‹å–èµ°ï¼Œå¦åˆ™å†æ¬¡é˜»å¡çº¿ç¨‹
 				while (threadPoolData->tasks.empty())
 				{
-					// ×èÈû´ËÏß³Ì£¬ÔÙ´Î»ñÈ¡ÈÎÎñËø£¬µÈ´ıÌõ¼ş±äÁ¿µÄ»½ĞÑĞÅºÅ£¬Ö±µ½¿ÕÏĞÏß³Ì±í²»Îª¿Õ»òÕß¹Ø±Õ¹ÜÀíÏß³Ì£¬ÊÍ·ÅÒ»´ÎÈÎÎñËø
+					// é˜»å¡æ­¤çº¿ç¨‹ï¼Œå†æ¬¡è·å–ä»»åŠ¡é”ï¼Œç­‰å¾…æ¡ä»¶å˜é‡çš„å”¤é†’ä¿¡å·ï¼Œç›´åˆ°ç©ºé—²çº¿ç¨‹è¡¨ä¸ä¸ºç©ºæˆ–è€…å…³é—­ç®¡ç†çº¿ç¨‹ï¼Œé‡Šæ”¾ä¸€æ¬¡ä»»åŠ¡é”
 					threadPoolData->signal.wait(taskLocker,
 						[this] {return !threadPoolData->tasks.empty() || getCloseStatus(); });
 					if (getCloseStatus())
 						return;
 				}
-				thread->configure(std::move(threadPoolData->tasks.front()));	// Îª¹¤×÷Ïß³Ì·ÖÅäĞÂÈÎÎñ
+				thread->configure(std::move(threadPoolData->tasks.front()));	// ä¸ºå·¥ä½œçº¿ç¨‹åˆ†é…æ–°ä»»åŠ¡
 				threadPoolData->tasks.pop();
 				taskLocker.unlock();
-				thread->start();	// »½ĞÑ×èÈûÖĞµÄ¹¤×÷Ïß³Ì
-				--threadPoolData->freeThreads;	// ¿ÕÏĞ¹¤×÷Ïß³ÌÊıÁ¿¼õÒ»
+				thread->start();	// å”¤é†’é˜»å¡ä¸­çš„å·¥ä½œçº¿ç¨‹
+				--threadPoolData->freeThreads;	// ç©ºé—²å·¥ä½œçº¿ç¨‹æ•°é‡å‡ä¸€
 			}
 		}
 		threadLocker.unlock();
