@@ -18,9 +18,9 @@ struct Thread::Structure
 	std::atomic_bool closed;						// 关闭状态标志
 	std::atomic_bool running;						// 运行状态标志
 	//ThreadPool *threadPool;						// 线程池指针
-	std::shared_ptr<Queue<functor>> taskQueue;		// 任务队列
+	std::shared_ptr<Queue<Functor>> taskQueue;		// 任务队列
 	std::function<void(bool, ThreadID)> callback;	// 回调函数子
-	functor task;									// 任务函数子
+	Functor task;									// 任务函数子
 	//// 线程过程参数解决方案：虚基类指针，过程类继承虚基类，通过强制类型转换，在过程函数中访问
 	//void *vpParameters;
 };
@@ -43,7 +43,7 @@ Thread::~Thread()
 }
 
 // 任务队列及回调函数子配置方法
-bool Thread::configure(std::shared_ptr<Queue<functor>> taskQueue,
+bool Thread::configure(std::shared_ptr<Queue<Functor>> taskQueue, \
 	std::function<void(bool, ThreadID)> callback)
 {
 	if (getRunning(data))
@@ -55,7 +55,7 @@ bool Thread::configure(std::shared_ptr<Queue<functor>> taskQueue,
 }
 
 // 任务配置方法
-bool Thread::configure(const functor& task)
+bool Thread::configure(const Functor& task)
 {
 	// 若处于运行状态，标志正在执行任务，配置新任务失败
 	if (getRunning(data))
@@ -93,31 +93,31 @@ bool Thread::free() const
 //}
 
 // 设置关闭状态
-inline void Thread::setClosed(data_type& data, bool closed)
+inline void Thread::setClosed(DataType& data, bool closed)
 {
 	data->closed = closed;
 }
 
 // 获取关闭状态
-inline bool Thread::getClosed(const data_type& data)
+inline bool Thread::getClosed(const DataType& data)
 {
 	return data->closed;
 }
 
 // 设置运行状态
-inline void Thread::setRunning(data_type& data, bool running)
+inline void Thread::setRunning(DataType& data, bool running)
 {
 	data->running = running;
 }
 
 // 获取运行状态
-inline bool Thread::getRunning(const data_type& data)
+inline bool Thread::getRunning(const DataType& data)
 {
 	return data->running;
 }
 
 // 工作线程主函数
-void Thread::execute(data_type data)
+void Thread::execute(DataType data)
 {
 	//// 调用std::mem_fn获取函数子getTask，其拥有指向ThreadPool::getTask的指针，并且重载运算符operator()
 	//auto &&getTask = std::mem_fn(&ThreadPool::getTask);
@@ -141,10 +141,8 @@ void Thread::execute(data_type data)
 		try
 		{
 			// 若任务函数子非空，执行任务函数子
-			if (data->task)
-				data->task();
-			//else
-			//	process();	// 执行默认任务函数
+			if (data->task) data->task();
+			//else process();	// 执行默认任务函数
 		}
 		catch (std::exception& exception)
 		{
@@ -155,19 +153,17 @@ void Thread::execute(data_type data)
 		/* 以data->threadPool->getTask(this->shared_from_this())的形式，
 		调用ThreadPool::getTask函数获取线程池任务队列的任务。
 		若未成功获取任务，阻塞工作线程。 */
-		//if (!(data->threadPool
+		//if (!(data->threadPool \
 		//	&& getTask(data->threadPool, this->shared_from_this())))
 		//{
 		//	// 工作线程退出通道
-		//	if (getClosed())
-		//		break;
+		//	if (getClosed()) break;
 		//	setRunning(false);	// 允许守护线程分配任务
 		//	data->condition.wait(threadLocker);	// 工作线程进入阻塞状态，等待条件变量的唤醒信号
 		//}
 
 		// 工作线程退出通道
-		if (getClosed(data))
-			break;
+		if (getClosed(data)) break;
 
 		// 若任务队列指针非空，并且队列非空，则配置新任务
 		if (data->taskQueue)
