@@ -1,6 +1,6 @@
 #pragma once
 
-namespace forever
+namespace eterfree
 {
 	/*
 		C++14中的std::move实现例子
