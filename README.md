@@ -26,8 +26,9 @@ Time
 Date  
 Timer
 
-## 其他
-作者：许聪
+## 作者
+name：许聪  
+mailbox：2592419242@qq.com  
 CSDN：https://blog.csdn.net/xucongyoushan  
 gitee：https://gitee.com/solifree  
 github：https://github.com/xucongandxuchong
