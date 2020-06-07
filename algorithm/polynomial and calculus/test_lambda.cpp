@@ -6,6 +6,11 @@
 
 int main()
 {
+	//double d[]{ 1, 2, 3, 4 };
+	//Polynomial<double> p(d, 4);
+	//Polynomial<double> pp = p;
+	//pp - p;
+
 	std::vector<double> v1{ 0, 1, 0, 1 };
 	std::vector<double> v2{ 0, 2, 3, 1 };
 	Polynomial<double> pv1(v1), pv2(v2);
@@ -36,4 +41,5 @@ int main()
 		&& fabs(result.second - grad) <= 0.001)
 		std::cout << "Success!\n";
 	else std::cout << "Error!\n";
+	return 0;
 }

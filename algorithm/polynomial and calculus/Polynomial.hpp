@@ -3,15 +3,21 @@
 
 #include <cmath>
 #include <utility>
-#include <vector>
 #include <algorithm>
+
+#include <functional>
+#include <utility>
+#include <cstddef>
+#include <initializer_list>
 #include <tuple>
+#include <vector>
+
 #include <type_traits>
 
-template<typename T>
+template <typename Type>
 class Polynomial
 {
-	static inline auto sort = [](auto left, auto right)
+	static constexpr auto sort = [](auto left, auto right)
 	{
 		if (left < right)
 			return std::make_tuple(left, right);
@@ -20,79 +26,59 @@ class Polynomial
 	};
 public:
 	/* Default constructor */
-	Polynomial()
-	{
-
-	}
+	Polynomial() {}
 
 	/* Constructor for a polynomial that's a constant number */
-	Polynomial(T constant)
+	Polynomial(Type constant)
 	{
-		coeffs.push_back(constant);
+		coefficients.push_back(constant);
 	}
 
 	/* Copying constructor with lvalue reference */
-	Polynomial(const Polynomial<T>& another)
-	{
-		coeffs = another.coeffs;
-	}
+	Polynomial(const Polynomial<Type>& another)
+		: coefficients(another.coefficients) {}
 
 	/* Moving constructor with rvalue reference */
-	Polynomial(Polynomial<T>&& another)
-	{
-		coeffs = std::move(another.coeffs);
-	}
+	Polynomial(Polynomial<Type>&& another)
+		: coefficients(std::move(another.coefficients)) {}
 
 	/* Given an lvalue reference of vector of coefficients */
-	Polynomial(const std::vector<T>& coeffs)
-	{
-		this->coeffs = coeffs;
-	}
+	Polynomial(const std::vector<Type>& coefficients)
+		: coefficients(coefficients) {}
 
 	/* Given an rvalue reference of a vector of coefficients */
-	Polynomial(std::vector<T>&& coeffs)
-	{
-		this->coeffs = std::move(coeffs);
-	}
+	Polynomial(std::vector<Type>&& coefficients)
+		: coefficients(std::move(coefficients)) {}
 
 	/* Given an array of coefficients with size of the array */
-	Polynomial(const T *coeffs, size_t num)
-	{
-		this->coeffs.reserve(num);
-		for (decltype(num) index = 0; index < num; ++index)
-			this->coeffs.push_back(coeffs[index]);
-	}
+	Polynomial(const Type *coefficients, size_t number)
+		: coefficients(coefficients, coefficients + number) {}
 
 	/* Given an initializer_list */
-	Polynomial(const std::initializer_list<T>& coeffs)
-	{
-		this->coeffs = coeffs;
-	}
+	Polynomial(const std::initializer_list<Type>& coefficients)
+		: coefficients(coefficients) {}
 
 	/* Virtual destructor */
-	virtual ~Polynomial()
-	{
-		
-	}
+	virtual ~Polynomial() {}
 
 	/* Copying assignment operator with lvalue reference */
-	Polynomial<T>& operator=(const Polynomial<T>& another)
+	Polynomial<Type>& operator=(const Polynomial<Type>& another)
 	{
-		coeffs = another.coeffs;
+		coefficients = another.coefficients;
 		return *this;
 	}
 
 	/* Moving assignment operator with rvalue reference */
-	Polynomial<T>& operator=(Polynomial<T>&& another)
+	Polynomial<Type>& operator=(Polynomial<Type>&& another)
 	{
-		coeffs = std::move(another.coeffs);
+		coefficients = std::move(another.coefficients);
 		return *this;
 	}
 
 	/* Assignment operator with initializer_list */
-	Polynomial<T>& operator=(const std::initializer_list<T>& coeffs)
+	Polynomial<Type>& operator=(const std::initializer_list<Type>& coefficients)
 	{
-		this->coeffs = coeffs;
+		this->coefficients = coefficients;
 		return *this;
 	}
 
@@ -101,92 +87,92 @@ public:
 	 * They are quite self-explanatory.
 	 */
 
-	Polynomial<T> operator+(const Polynomial<T>& rhs) const
+	Polynomial<Type> operator+(const Polynomial<Type>& rhs) const
 	{
-		auto&& lcoeffs = this->coeffs;
+		auto&& lcoeffs = this->coefficients;
 		auto lsize = lcoeffs.size();
-		auto&& rcoeffs = rhs.coeffs;
+		auto&& rcoeffs = rhs.coefficients;
 		auto rsize = rcoeffs.size();
 		auto [min_size, max_size] = sort(lsize, rsize);
 
-		typename std::remove_const<std::remove_reference<decltype(lcoeffs)>::type>::type coeffs;
-		coeffs.reserve(max_size);
+		typename std::remove_const<std::remove_reference<decltype(lcoeffs)>::type>::type coefficients;
+		coefficients.reserve(max_size);
 		decltype(min_size) index = 0;
 		for (; index < min_size; ++index)
-			coeffs.push_back(lcoeffs[index] + rcoeffs[index]);
+			coefficients.push_back(lcoeffs[index] + rcoeffs[index]);
 		while (index < lsize)
-			coeffs.push_back(lcoeffs[index++]);
+			coefficients.push_back(lcoeffs[index++]);
 		while (index < rsize)
-			coeffs.push_back(rcoeffs[index++]);
-		return Polynomial(std::move(coeffs));
+			coefficients.push_back(rcoeffs[index++]);
+		return Polynomial(std::move(coefficients));
 	}
 
-	Polynomial<T> operator-(const Polynomial<T>& rhs) const
+	Polynomial<Type> operator-(const Polynomial<Type>& rhs) const
 	{
-		auto&& lcoeffs = this->coeffs;
+		auto&& lcoeffs = this->coefficients;
 		auto lsize = lcoeffs.size();
-		auto&& rcoeffs = rhs.coeffs;
+		auto&& rcoeffs = rhs.coefficients;
 		auto rsize = rcoeffs.size();
 		auto [min_size, max_size] = sort(lsize, rsize);
 		
-		typename std::remove_const<std::remove_reference<decltype(lcoeffs)>::type>::type coeffs;
-		coeffs.reserve(max_size);
+		typename std::remove_const<std::remove_reference<decltype(lcoeffs)>::type>::type coefficients;
+		coefficients.reserve(max_size);
 		decltype(min_size) index = 0;
 		for (; index < min_size; ++index)
-			coeffs.push_back(lcoeffs[index] - rcoeffs[index]);
+			coefficients.push_back(lcoeffs[index] - rcoeffs[index]);
 		while (index < lsize)
-			coeffs.push_back(lcoeffs[index++]);
+			coefficients.push_back(lcoeffs[index++]);
 		while (index < rsize)
-			coeffs.push_back(-rcoeffs[index++]);
-		return Polynomial(std::move(coeffs));
+			coefficients.push_back(-rcoeffs[index++]);
+		return Polynomial(std::move(coefficients));
 	}
 
-	Polynomial<T> operator*(const Polynomial<T>& rhs) const
+	Polynomial<Type> operator*(const Polynomial<Type>& rhs) const
 	{
-		auto&& lcoeffs = this->coeffs;
+		auto&& lcoeffs = this->coefficients;
 		auto lsize = lcoeffs.size();
-		auto&& rcoeffs = rhs.coeffs;
+		auto&& rcoeffs = rhs.coefficients;
 		auto rsize = rcoeffs.size();
 		auto max_size = std::max(lsize + rsize - 1, static_cast<decltype(lsize)>(0));
 
-		std::vector<double> coeffs(max_size);
+		std::vector<double> coefficients(max_size);
 		for (decltype(lsize) i = 0; i < lsize; ++i)
 			for (decltype(rsize) j = 0; j < rsize; ++j)
-				coeffs[i + j] += lcoeffs[i] * rcoeffs[j];
-		return Polynomial(coeffs);
+				coefficients[i + j] += lcoeffs[i] * rcoeffs[j];
+		return Polynomial(coefficients);
 	}
 	
-	Polynomial<T>& operator+=(const Polynomial<T>& rhs)
+	Polynomial<Type>& operator+=(const Polynomial<Type>& rhs)
 	{
-		auto&& rcoeffs = rhs.coeffs;
+		auto&& rcoeffs = rhs.coefficients;
 		auto rsize = rcoeffs.size();
-		auto [min_size, max_size] = sort(coeffs.size(), rsize);
+		auto [min_size, max_size] = sort(coefficients.size(), rsize);
 
-		coeffs.reserve(max_size);
+		coefficients.reserve(max_size);
 		decltype(min_size) index = 0;
 		for (; index < min_size; ++index)
-			coeffs[index] += rcoeffs[index];
+			coefficients[index] += rcoeffs[index];
 		while (index < rsize)
-			coeffs.push_back(rcoeffs[index++]);
+			coefficients.push_back(rcoeffs[index++]);
 		return *this;
 	}
 
-	Polynomial<T>& operator-=(const Polynomial<T>& rhs)
+	Polynomial<Type>& operator-=(const Polynomial<Type>& rhs)
 	{
-		auto&& rcoeffs = rhs.coeffs;
+		auto&& rcoeffs = rhs.coefficients;
 		auto rsize = rcoeffs.size();
-		auto [min_size, max_size] = sort(coeffs.size(), rsize);
+		auto [min_size, max_size] = sort(coefficients.size(), rsize);
 
-		coeffs.reserve(max_size);
+		coefficients.reserve(max_size);
 		decltype(min_size) index = 0;
 		for (; index < min_size; ++index)
-			coeffs[index] -= rcoeffs[index];
+			coefficients[index] -= rcoeffs[index];
 		while (index < rsize)
-			coeffs.push_back(-rcoeffs[index++]);
+			coefficients.push_back(-rcoeffs[index++]);
 		return *this;
 	}
 
-	Polynomial<T>& operator*=(const Polynomial<T>& rhs)
+	Polynomial<Type>& operator*=(const Polynomial<Type>& rhs)
 	{
 		return *this = *this * rhs;
 	}
@@ -196,12 +182,12 @@ public:
 	 * and returns the value of evaluation.
 	 * For example, evaluating x+3 at param=7 gives 10.
 	 */
-	T evaluate(T param) const
+	Type evaluate(Type param) const
 	{
-		T sum = 0;
-		auto size = coeffs.size();
+		Type sum = 0;
+		auto size = coefficients.size();
 		for (decltype(size) index = 0; index < size; ++index)
-			sum += std::pow(param, index)*coeffs[index];
+			sum += std::pow(param, index)*coefficients[index];
 		return sum;
 	}
 
@@ -211,13 +197,13 @@ public:
 	 * For example, calling this function for x^2
 	 * will return a polynomial 2x. 求导
 	 */
-	Polynomial<T> derivative() const
+	Polynomial<Type> derivative() const
 	{
-		decltype(this->coeffs) coeffs;
-		auto size = this->coeffs.size();
+		decltype(this->coefficients) coefficients;
+		auto size = this->coefficients.size();
 		for (decltype(size) index = 1; index < size; ++index)
-			coeffs.push_back(index * this->coeffs[index]);
-		return Polynomial(std::move(coeffs));
+			coefficients.push_back(index * this->coefficients[index]);
+		return Polynomial(std::move(coefficients));
 	}
 
 	/*
@@ -227,15 +213,15 @@ public:
 	* For example, calling this operator for x^2-2x at "param"=4
 	* will return (8, 6). 返回原函数的值以及一阶导的值
 	*/
-	std::pair<T, T> operator()(T param) const
+	std::pair<Type, Type> operator()(Type param) const
 	{
-		T left = this->evaluate(param);
+		Type left = this->evaluate(param);
 		auto temp = this->derivative();
-		T right = temp.evaluate(param);
+		Type right = temp.evaluate(param);
 		return std::make_pair(left, right);
 	}
 private:
-	std::vector<T> coeffs;
+	std::vector<Type> coefficients;
 };
 
 #endif
