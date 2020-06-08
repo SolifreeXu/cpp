@@ -1,13 +1,13 @@
 #ifndef POLYNOMIAL_HPP
 #define POLYNOMIAL_HPP
 
-#include <cmath>
-#include <utility>
 #include <algorithm>
+
+#include <cmath>
+#include <cstddef>
 
 #include <functional>
 #include <utility>
-#include <cstddef>
 #include <initializer_list>
 #include <tuple>
 #include <vector>
@@ -24,6 +24,7 @@ class Polynomial
 		else
 			return std::make_tuple(right, left);
 	};
+	std::vector<Type> coefficients;
 public:
 	/* Default constructor */
 	Polynomial() {}
@@ -89,86 +90,87 @@ public:
 
 	Polynomial<Type> operator+(const Polynomial<Type>& rhs) const
 	{
-		auto&& lcoeffs = this->coefficients;
-		auto lsize = lcoeffs.size();
-		auto&& rcoeffs = rhs.coefficients;
-		auto rsize = rcoeffs.size();
+		auto&& lcs = coefficients;
+		auto lsize = lcs.size();
+		auto&& rcs = rhs.coefficients;
+		auto rsize = rcs.size();
 		auto [min_size, max_size] = sort(lsize, rsize);
 
-		typename std::remove_const<std::remove_reference<decltype(lcoeffs)>::type>::type coefficients;
+		decltype(coefficients) coefficients;
 		coefficients.reserve(max_size);
 		decltype(min_size) index = 0;
 		for (; index < min_size; ++index)
-			coefficients.push_back(lcoeffs[index] + rcoeffs[index]);
+			coefficients.push_back(lcs[index] + rcs[index]);
 		while (index < lsize)
-			coefficients.push_back(lcoeffs[index++]);
+			coefficients.push_back(lcs[index++]);
 		while (index < rsize)
-			coefficients.push_back(rcoeffs[index++]);
+			coefficients.push_back(rcs[index++]);
 		return Polynomial(std::move(coefficients));
 	}
 
 	Polynomial<Type> operator-(const Polynomial<Type>& rhs) const
 	{
-		auto&& lcoeffs = this->coefficients;
-		auto lsize = lcoeffs.size();
-		auto&& rcoeffs = rhs.coefficients;
-		auto rsize = rcoeffs.size();
+		auto&& lcs = coefficients;
+		auto lsize = lcs.size();
+		auto&& rcs = rhs.coefficients;
+		auto rsize = rcs.size();
 		auto [min_size, max_size] = sort(lsize, rsize);
 		
-		typename std::remove_const<std::remove_reference<decltype(lcoeffs)>::type>::type coefficients;
+		decltype(coefficients) coefficients;
 		coefficients.reserve(max_size);
 		decltype(min_size) index = 0;
 		for (; index < min_size; ++index)
-			coefficients.push_back(lcoeffs[index] - rcoeffs[index]);
+			coefficients.push_back(lcs[index] - rcs[index]);
 		while (index < lsize)
-			coefficients.push_back(lcoeffs[index++]);
+			coefficients.push_back(lcs[index++]);
 		while (index < rsize)
-			coefficients.push_back(-rcoeffs[index++]);
+			coefficients.push_back(-rcs[index++]);
 		return Polynomial(std::move(coefficients));
 	}
 
 	Polynomial<Type> operator*(const Polynomial<Type>& rhs) const
 	{
-		auto&& lcoeffs = this->coefficients;
-		auto lsize = lcoeffs.size();
-		auto&& rcoeffs = rhs.coefficients;
-		auto rsize = rcoeffs.size();
-		auto max_size = std::max(lsize + rsize - 1, static_cast<decltype(lsize)>(0));
+		auto&& lcs = coefficients;
+		auto lsize = lcs.size();
+		auto&& rcs = rhs.coefficients;
+		auto rsize = rcs.size();
+		auto max_size = lsize + rsize;
+		max_size = max_size > 0 ? max_size - 1 : 0;
 
-		std::vector<double> coefficients(max_size);
+		std::vector<Type> coefficients(max_size);
 		for (decltype(lsize) i = 0; i < lsize; ++i)
 			for (decltype(rsize) j = 0; j < rsize; ++j)
-				coefficients[i + j] += lcoeffs[i] * rcoeffs[j];
+				coefficients[i + j] += lcs[i] * rcs[j];
 		return Polynomial(coefficients);
 	}
 	
 	Polynomial<Type>& operator+=(const Polynomial<Type>& rhs)
 	{
-		auto&& rcoeffs = rhs.coefficients;
-		auto rsize = rcoeffs.size();
+		auto&& rcs = rhs.coefficients;
+		auto rsize = rcs.size();
 		auto [min_size, max_size] = sort(coefficients.size(), rsize);
 
 		coefficients.reserve(max_size);
 		decltype(min_size) index = 0;
 		for (; index < min_size; ++index)
-			coefficients[index] += rcoeffs[index];
+			coefficients[index] += rcs[index];
 		while (index < rsize)
-			coefficients.push_back(rcoeffs[index++]);
+			coefficients.push_back(rcs[index++]);
 		return *this;
 	}
 
 	Polynomial<Type>& operator-=(const Polynomial<Type>& rhs)
 	{
-		auto&& rcoeffs = rhs.coefficients;
-		auto rsize = rcoeffs.size();
+		auto&& rcs = rhs.coefficients;
+		auto rsize = rcs.size();
 		auto [min_size, max_size] = sort(coefficients.size(), rsize);
 
 		coefficients.reserve(max_size);
 		decltype(min_size) index = 0;
 		for (; index < min_size; ++index)
-			coefficients[index] -= rcoeffs[index];
+			coefficients[index] -= rcs[index];
 		while (index < rsize)
-			coefficients.push_back(-rcoeffs[index++]);
+			coefficients.push_back(-rcs[index++]);
 		return *this;
 	}
 
@@ -178,16 +180,16 @@ public:
 	}
 
 	/*
-	 * This function evaluates the polynomial at "param",
+	 * This function evaluates the polynomial at "parameter",
 	 * and returns the value of evaluation.
-	 * For example, evaluating x+3 at param=7 gives 10.
+	 * For example, evaluating x+3 at parameter=7 gives 10.
 	 */
-	Type evaluate(Type param) const
+	Type evaluate(Type parameter) const
 	{
 		Type sum = 0;
 		auto size = coefficients.size();
 		for (decltype(size) index = 0; index < size; ++index)
-			sum += std::pow(param, index)*coefficients[index];
+			sum += std::pow(parameter, index)*coefficients[index];
 		return sum;
 	}
 
@@ -199,8 +201,10 @@ public:
 	 */
 	Polynomial<Type> derivative() const
 	{
-		decltype(this->coefficients) coefficients;
-		auto size = this->coefficients.size();
+		auto size = coefficients.size();
+		decltype(coefficients) coefficients;
+		coefficients.reserve(size > 0 ? size - 1 : 0);
+
 		for (decltype(size) index = 1; index < size; ++index)
 			coefficients.push_back(index * this->coefficients[index]);
 		return Polynomial(std::move(coefficients));
@@ -208,20 +212,106 @@ public:
 
 	/*
 	* This function returns a pair of:
-	* 1. the value (evaluation) of the polynomial at "param".
-	* 2. the value of the first-order derivative of the polynomial at "param".
-	* For example, calling this operator for x^2-2x at "param"=4
-	* will return (8, 6). 返回原函数的值以及一阶导的值
+	* 1. the value (evaluation) of the polynomial at "parameter".
+	* 2. the value of the first-order derivative of the polynomial at "parameter".
+	* For example, calling this operator for x^2-2x at parameter=4
+	* will return (8, 6). 返回原函数值以及一阶导值
 	*/
-	std::pair<Type, Type> operator()(Type param) const
+	std::pair<Type, Type> operator()(Type parameter) const
 	{
-		Type left = this->evaluate(param);
-		auto temp = this->derivative();
-		Type right = temp.evaluate(param);
-		return std::make_pair(left, right);
+		Type first = evaluate(parameter);
+		auto temp = derivative();
+		Type second = temp.evaluate(parameter);
+		return std::make_pair(first, second);
 	}
-private:
-	std::vector<Type> coefficients;
 };
+
+/* For all lambda functions below, if you are not clear how they work, please refer to the given example for details. */
+namespace form {
+	/*
+	 * Return a lambda function that takes one parameter (m) and returns a pair<double, double> that:
+	 * has (f1+f2)(m) as first, and (d(f1+f2)/dx)(m) as second.
+	 */
+	auto add = [](auto f1, auto f2) {
+		return [=](auto m) {
+			auto p1 = f1(m);
+			auto p2 = f2(m);
+			auto first = p1.first + p2.first;
+			auto second = p1.second + p2.second;
+			return std::make_pair(first, second);
+		};
+	};
+
+	/*
+	 * Return a lambda function that takes one parameter (m) and returns a pair<double, double> that:
+	 * has (f1-f2)(m) as first, and (d(f1-f2)/dx)(m) as second.
+	 */
+	auto subtract = [](auto f1, auto f2) {
+		return [=](auto m) {
+			auto p1 = f1(m);
+			auto p2 = f2(m);
+			auto first = p1.first - p2.first;
+			auto second = p1.second - p2.second;
+			return std::make_pair(first, second);
+		};
+	};
+
+	/*
+	 * Return a lambda function that takes one parameter (m) and returns a pair<double, double> that:
+	 * has (f1*f2)(m) as first, and (d(f1*f2)/dx)(m) as second.
+	 */
+	auto multiply = [](auto f1, auto f2) {
+		return [=](auto m) {
+			auto p1 = f1(m);
+			auto p2 = f2(m);
+			auto first = p1.first*p2.first;
+			auto second = p1.second*p2.first + p1.first*p2.second;
+			return std::make_pair(first, second);
+		};
+	};
+
+	/*
+	 * Return a lambda function that takes one parameter (m) and returns a pair<double, double> that:
+	 * has (f1/f2)(m) as first, and (d(f1/f2)/dx)(m) as second.
+	 */
+	auto divide = [](auto f1, auto f2) {
+		return [=](auto m) {
+			auto p1 = f1(m);
+			auto p2 = f2(m);
+			auto first = p1.first / p2.first;
+			auto numerator = p1.second*p2.first - p1.first*p2.second;
+			auto denominator = p2.first*p2.first;
+			auto second = numerator / denominator;
+			return std::make_pair(first, second);
+		};
+	};
+
+	/*
+	 * Return a lambda function that takes one parameter (m) and returns a pair<double, double> that:
+	 * has (f1(f2))(m) as first, and (d(f1(f2))/dx)(m) as second.
+	 */
+	auto compose = [](auto f1, auto f2) {
+		return [=](auto m) {
+			auto p1 = f1(m);
+			auto p2 = f2(p1.first);
+			auto first = p2.first;
+			auto second = p2.second*p1.second;
+			return std::make_pair(first, second);
+		};
+	};
+
+	/*
+	 * Return a lambda function that takes one parameter (m) and returns a pair<double, double> that:
+	 * has [(f)(m)]^exp as first, and (d(f^exp)/dx)(m) as second.
+	 */
+	auto power = [](auto f, int exp) {
+		return [=](auto m) {
+			auto p = f(m);
+			auto first = pow(p.first, exp);
+			auto second = exp * pow(p.first, exp - 1) * p.second;
+			return std::make_pair(first, second);
+		};
+	};
+}
 
 #endif
