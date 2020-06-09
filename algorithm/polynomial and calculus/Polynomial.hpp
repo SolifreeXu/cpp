@@ -1,18 +1,12 @@
 #ifndef POLYNOMIAL_HPP
 #define POLYNOMIAL_HPP
 
-#include <algorithm>
-
-#include <cmath>
 #include <cstddef>
+#include <cmath>
 
-#include <functional>
 #include <utility>
-#include <initializer_list>
 #include <tuple>
 #include <vector>
-
-#include <type_traits>
 
 template <typename Type>
 class Polynomial
@@ -304,9 +298,10 @@ namespace form {
 	 * Return a lambda function that takes one parameter (m) and returns a pair<double, double> that:
 	 * has [(f)(m)]^exp as first, and (d(f^exp)/dx)(m) as second.
 	 */
-	auto power = [](auto f, int exp) {
+	auto power = [](auto f, auto exp) {
 		return [=](auto m) {
 			auto p = f(m);
+			using std::pow;
 			auto first = pow(p.first, exp);
 			auto second = exp * pow(p.first, exp - 1) * p.second;
 			return std::make_pair(first, second);
