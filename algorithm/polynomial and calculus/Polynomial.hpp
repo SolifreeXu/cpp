@@ -221,7 +221,7 @@ public:
 };
 
 /* For all lambda functions below, if you are not clear how they work, please refer to the given example for details. */
-namespace form {
+namespace polynomial {
 	/*
 	 * Return a lambda function that takes one parameter (m) and returns a pair<double, double> that:
 	 * has (f1+f2)(m) as first, and (d(f1+f2)/dx)(m) as second.

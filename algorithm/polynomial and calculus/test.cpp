@@ -7,7 +7,7 @@ int main()
 	using std::vector;
 	vector<double> v1{ 0, 1, 0, 1 };
 	vector<double> v2{ 0, 2, 3, 1 };
-	using namespace form;
+	using namespace polynomial;
 	auto result = add(Polynomial<double>(v1), Polynomial<double>(v2))(2);
 
 	using std::fabs;
