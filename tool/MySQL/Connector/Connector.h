@@ -33,7 +33,4 @@ public:
 	bool connect();
 	void disconnect();
 	string *execute(const string &sql);
-protected:
-	void init();	// 初始连接
-	void close();	// 关闭连接
 };
