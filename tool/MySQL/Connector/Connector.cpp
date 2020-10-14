@@ -16,9 +16,7 @@ struct Connector::Structure
 };
 
 Connector::Connector()
-{
-	table = std::make_unique<Structure>();
-}
+	: table(std::make_unique<Structure>()) {}
 
 Connector::~Connector()
 {
