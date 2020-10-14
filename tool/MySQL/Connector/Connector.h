@@ -2,9 +2,8 @@
 
 #include <mysql/mysql.h>
 
-#include <cstdint>
-
 #include <memory>
+#include <cstdint>
 #include <string>
 #include <mutex>
 

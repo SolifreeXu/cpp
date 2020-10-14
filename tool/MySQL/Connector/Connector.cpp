@@ -1,7 +1,7 @@
 #include "Connector.h"
 
-#include <sstream>
 #include <iostream>
+#include <sstream>
 
 #pragma comment(lib, "libmysql.lib")
 
