@@ -65,10 +65,8 @@ public:
 		}
 
 		node_type& node = iterator->second;
-		ranking_list.erase(node);
-		auto& data = node.data;
-		data->integral = integral;
-		data->timestamp = timestamp;
+		node.data->integral = integral;
+		node.data->timestamp = timestamp;
 		ranking_list.insert(std::make_pair(node, id));
 	}
 };
