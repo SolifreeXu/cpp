@@ -14,7 +14,8 @@ fixed-point decimal precision
 HuffmanTree
 
 ## 算法
-polynomial and calculus
+polynomial and calculus  
+Leaderboard
 
 ## 设计模式
 double dispatching
