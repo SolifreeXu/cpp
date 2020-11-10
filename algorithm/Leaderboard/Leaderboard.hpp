@@ -39,7 +39,7 @@ class Leaderboard
 	std::unordered_map<uint_least64_t, node_type> mapping;
 	std::map<node_type, uint_least64_t> ranking_list;
 public:
-	auto get(size_t number)
+	auto get(size_t number) const
 	{
 		std::vector<node_type> nodes(0);
 		number = std::min(ranking_list.size(), number);
