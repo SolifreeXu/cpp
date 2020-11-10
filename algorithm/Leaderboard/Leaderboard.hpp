@@ -41,15 +41,15 @@ class Leaderboard
 public:
 	auto get(size_t number) const
 	{
-		std::vector<node_type> nodes(0);
 		number = std::min(ranking_list.size(), number);
-		if (number > 0)
-		{
-			nodes.reserve(number);
-			auto iterator = ranking_list.crbegin();
-			for (; number > 0; --number)
-				nodes.push_back(iterator++->first);
-		}
+		if (number <= 0)
+			return std::vector<node_type>(0);
+
+		std::vector<node_type> nodes(0);
+		nodes.reserve(number);
+		auto iterator = ranking_list.crbegin();
+		for (; number > 0; --number)
+			nodes.push_back(iterator++->first);
 		return nodes;
 	}
 
