@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include <map>
+#include <set>
 #include <unordered_map>
 
 class Leaderboard
@@ -36,8 +36,8 @@ class Leaderboard
 		}
 	};
 
-	std::unordered_map<uint_least64_t, node_type> mapping;
-	std::map<node_type, uint_least64_t> ranking_list;
+	std::unordered_map<uint_least64_t, node_type> mapping_table;
+	std::set<node_type> ranking_list;
 public:
 	auto get(size_t number) const
 	{
@@ -49,18 +49,18 @@ public:
 		nodes.reserve(number);
 		auto iterator = ranking_list.crbegin();
 		for (; number > 0; --number)
-			nodes.push_back(iterator++->first);
+			nodes.push_back(*iterator++);
 		return nodes;
 	}
 
 	void update(uint_least64_t id, uint_least64_t integral, uint_least64_t timestamp)
 	{
-		auto iterator = mapping.find(id);
-		if (iterator == mapping.end())
+		auto iterator = mapping_table.find(id);
+		if (iterator == mapping_table.end())
 		{
 			node_type node = node_type(data_type{ id, integral, timestamp });
-			mapping[id] = node;
-			ranking_list[node] = id;
+			mapping_table[id] = node;
+			ranking_list.insert(node);
 			return;
 		}
 
@@ -68,6 +68,6 @@ public:
 		ranking_list.erase(node);
 		node.data->integral = integral;
 		node.data->timestamp = timestamp;
-		ranking_list.insert(std::make_pair(node, id));
+		ranking_list.insert(node);
 	}
 };
