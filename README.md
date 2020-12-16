@@ -15,6 +15,8 @@ shared_lock
 
 ## 数据结构
 HuffmanTree
+### Stack
+Stack
 
 ## 算法
 polynomial and calculus  
