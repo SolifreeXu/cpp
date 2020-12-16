@@ -9,6 +9,9 @@ max
 min
 ### iostream
 fixed-point decimal precision
+### shared_mutex
+shared_mutex  
+shared_lock
 
 ## 数据结构
 HuffmanTree
@@ -28,9 +31,6 @@ Date
 Timer
 ### MySQL
 Connector
-### shared_mutex
-shared_mutex  
-shared_lock
 
 ## 作者
 name：许聪  
