@@ -3,7 +3,7 @@
 
 int main()
 {
-	const double PI = atan(1.0) * 4; // ·´Èı½Çº¯Êıarctan
+	const double PI = atan(1.0) * 4; // åä¸‰è§’å‡½æ•°arctan
 	using std::cout;
 	cout.setf(std::ios::fixed);
 	cout.precision(7);
