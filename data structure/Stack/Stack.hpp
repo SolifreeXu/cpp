@@ -33,24 +33,24 @@
 //	}
 //};
 
-template <typename Type>
+template <typename data_type, typename size_type = size_t>
 class Stack
 {
 	struct Node;
 	struct counting_pointer
 	{
-		size_t external;
+		size_type external;
 		Node* node;
 	};
 
 	struct Node
 	{
-		std::shared_ptr<Type> data;
-		std::atomic<size_t> internal;
+		std::shared_ptr<data_type> data;
+		std::atomic<size_type> internal;
 		counting_pointer next;
 
-		Node(const Type& data)
-			: data(std::make_shared<Type>(data)), internal(0) {}
+		Node(const data_type& data)
+			: data(std::make_shared<data_type>(data)), internal(0) {}
 	};
 
 	std::atomic<counting_pointer> head;
@@ -69,7 +69,7 @@ private:
 public:
 	~Stack() { while (pop()); }
 
-	void push(const Type& data)
+	void push(const data_type& data)
 	{
 		counting_pointer pointer;
 		pointer.external = 0;
@@ -79,7 +79,7 @@ public:
 			std::memory_order_release, std::memory_order_relaxed));
 	}
 
-	std::shared_ptr<Type> pop()
+	std::shared_ptr<data_type> pop()
 	{
 		counting_pointer pointer = head.load(std::memory_order_relaxed);
 		while (true)
@@ -87,12 +87,12 @@ public:
 			increase(pointer);
 			Node* const node = pointer.node;
 			if (node == nullptr)
-				return std::shared_ptr<Type>();
+				return std::shared_ptr<data_type>();
 			if (head.compare_exchange_strong(pointer, node->next, std::memory_order_relaxed))
 			{
-				std::shared_ptr<Type> data;
+				std::shared_ptr<data_type> data;
 				data.swap(node->data);
-				const size_t counter = pointer.external - 1;
+				const size_type counter = pointer.external - 1;
 				if (node->internal.fetch_add(counter, std::memory_order_release) == -counter)
 					delete node;
 				return data;
