@@ -19,7 +19,7 @@ C++之道的精选代码，按照语言特性、数据结构、算法、设计�
 double dispatching
 
 ## 工具类库
-排行榜：Leaderboard
+排行榜：[Leaderboard](tool/Leaderboard)
 ### MySQL
 连接器：Connector
 ### 旧版
