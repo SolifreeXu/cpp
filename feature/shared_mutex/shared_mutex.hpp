@@ -22,9 +22,9 @@ class shared_mutex
 	std::mutex mutex;
 	std::condition_variable shared_variable;
 	std::condition_variable exclusive_variable;
-	volatile size_t shared_counter;
-	volatile size_t exclusive_counter;
-	volatile bool exclusive;
+	size_t shared_counter;
+	size_t exclusive_counter;
+	bool exclusive;
 private:
 	bool shareable() const noexcept
 	{

@@ -61,7 +61,7 @@ public:
 			std::inserter(leaderboard->mapping_table, leaderboard->mapping_table.begin()),
 			[&leaderboard](const mapping_type& pair)
 			{
-				node_type node = *pair.second.data;
+				const node_type& node = *pair.second.data;
 				leaderboard->ranking_list.insert(node);
 				return std::make_pair(pair.first, node);
 			});
