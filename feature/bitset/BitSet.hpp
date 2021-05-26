@@ -28,16 +28,16 @@ private:
 		return static_cast<ValueType>(1) << (_position & _elementSize);
 	}
 
-	void reserve(SizeType _position)
+	void reserve(SizeType _capacity)
 	{
-		auto size = BitSet::size(_position);
+		auto size = BitSet::size(_capacity);
 		if (size > _elementSet.size())
 			_elementSet.resize(size, 0);
 	}
 
 public:
-	BitSet(SizeType _capacity)
-		: _elementSet(size(_capacity), 0) {}
+	BitSet(SizeType _size)
+		: _elementSet(_size, 0) {}
 
 	BitSet(const ValueType* _data, SizeType _size)
 		: _elementSet(_data, _data + _size) {}
@@ -54,10 +54,7 @@ public:
 
 	bool operator[](SizeType _position) const noexcept
 	{
-		if (size(_position) > _elementSet.size())
-			return false;
-
-		return (_elementSet[_position >> _sizeBit] & generate(_position)) > 0;
+		return size(_position) <= _elementSet.size() && (_elementSet[_position >> _sizeBit] & generate(_position)) > 0;
 	}
 
 	BitSet& operator&=(const BitSet& _another) noexcept;
