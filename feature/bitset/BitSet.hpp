@@ -1,104 +1,113 @@
 ﻿#pragma once
 
+#include <cstddef>
 #include <climits>
-#include <string>
+#include <vector>
 #include <cmath>
 
-template <typename _SizeType = size_t>
+template <typename _ValueType, typename _SizeType = std::size_t>
 class BitSet
 {
 public:
+	using ValueType = _ValueType;
 	using SizeType = _SizeType;
 
 private:
-	static const SizeType _charBit;
-	std::string _byteSet;
+	static constexpr SizeType _elementSize = CHAR_BIT * sizeof(ValueType) - 1;
+	static const SizeType _sizeBit;
+	std::vector<ValueType> _elementSet;
 
 private:
 	static SizeType size(SizeType _capacity) noexcept
 	{
-		return (_capacity >> _charBit) + ((_capacity & CHAR_BIT - 1) > 0);
+		return (_capacity >> _sizeBit) + ((_capacity & _elementSize) > 0);
 	}
 
-	static char generate(SizeType _position) noexcept
+	static ValueType generate(SizeType _position) noexcept
 	{
-		return '\1' << (_position & CHAR_BIT - 1);
+		return static_cast<ValueType>(1) << (_position & _elementSize);
 	}
 
 	void reserve(SizeType _position)
 	{
 		auto size = BitSet::size(_position);
-		if (size > _byteSet.size())
-			_byteSet.resize(size, '\0');
+		if (size > _elementSet.size())
+			_elementSet.resize(size, 0);
 	}
 
 public:
 	BitSet(SizeType _capacity)
-		: _byteSet(size(_capacity), '\0') {}
+		: _elementSet(size(_capacity), 0) {}
 
-	BitSet(const char* _data, SizeType _size)
-		: _byteSet(_data, _size) {}
+	BitSet(const ValueType* _data, SizeType _size)
+		: _elementSet(_data, _data + _size) {}
 
-	bool operator==(const BitSet& _another) const noexcept
+	bool operator==(const BitSet& _another) const
 	{
-		return _byteSet == _another._byteSet;
+		return _elementSet == _another._elementSet;
 	}
 
-	bool operator!=(const BitSet& _another) const noexcept
+	bool operator!=(const BitSet& _another) const
 	{
-		return _byteSet != _another._byteSet;
+		return _elementSet != _another._elementSet;
 	}
 
 	bool operator[](SizeType _position) const noexcept
 	{
-		if (size(_position) > _byteSet.size())
+		if (size(_position) > _elementSet.size())
 			return false;
 
-		return (_byteSet[_position >> _charBit] & generate(_position)) > 0;
+		return (_elementSet[_position >> _sizeBit] & generate(_position)) > 0;
 	}
+
+	BitSet& operator&=(const BitSet& _another) noexcept;
+
+	BitSet& operator|=(const BitSet& _another) noexcept;
+
+	BitSet& operator^=(const BitSet& _another) noexcept;
 
 	BitSet operator~() const noexcept
 	{
 		return BitSet(*this).flip();
 	}
 
-	// 获取字节内容
-	const char* data() const noexcept
+	// 获取元素内容
+	const ValueType* data() const noexcept
 	{
-		return _byteSet.data();
+		return _elementSet.data();
 	}
 
-	// 获取字节数
+	// 获取元素数量
 	SizeType size() const noexcept
 	{
-		return _byteSet.size();
+		return _elementSet.size();
 	}
 
-	// 获取位数
+	// 统计有效位
 	SizeType count() const noexcept;
 
-	// 所有位为真
+	// 所有位有效
 	bool all() const noexcept;
 
-	// 任意位为真
+	// 任意位有效
 	bool any() const noexcept;
 
-	// 无位为真
+	// 无位有效
 	bool none() const noexcept
 	{
 		return !any();
 	}
 
-	// 更改字节数
-	void resize(SizeType size)
+	// 改变元素数量
+	void resize(SizeType _size)
 	{
-		_byteSet.resize(size, '\0');
+		_elementSet.resize(_size, 0);
 	}
 
 	// 设置所有位
 	BitSet& set()
 	{
-		_byteSet.replace(0, _byteSet.size(), _byteSet.size(), ~'\0');
+		_elementSet.assign(_elementSet.size(), ~static_cast<ValueType>(0));
 		return *this;
 	}
 
@@ -110,14 +119,14 @@ public:
 
 		reserve(_position);
 
-		_byteSet[_position >> _charBit] |= generate(_position);
+		_elementSet[_position >> _sizeBit] |= generate(_position);
 		return *this;
 	}
 
 	// 重置所有位
 	BitSet& reset()
 	{
-		_byteSet.replace(0, _byteSet.size(), _byteSet.size(), '\0');
+		_elementSet.assign(_elementSet.size(), 0);
 		return *this;
 	}
 
@@ -126,7 +135,7 @@ public:
 	{
 		reserve(_position);
 
-		_byteSet[_position >> _charBit] &= ~generate(_position);
+		_elementSet[_position >> _sizeBit] &= ~generate(_position);
 		return *this;
 	}
 
@@ -138,18 +147,47 @@ public:
 	{
 		reserve(_position);
 
-		_byteSet[_position >> _charBit] ^= generate(_position);
+		_elementSet[_position >> _sizeBit] ^= generate(_position);
 		return *this;
 	}
 };
 
-template <typename _SizeType>
-const typename BitSet<_SizeType>::SizeType BitSet<_SizeType>::_charBit = static_cast<SizeType>(std::log2(CHAR_BIT));
+template <typename _ValueType, typename _SizeType>
+const typename BitSet<_ValueType, _SizeType>::SizeType BitSet<_ValueType, _SizeType>::_sizeBit = static_cast<SizeType>(std::log2(CHAR_BIT * sizeof ValueType));
 
-// 获取位数
-template <typename _SizeType>
-typename BitSet<_SizeType>::SizeType BitSet<_SizeType>::count() const noexcept
+template <typename _ValueType, typename _SizeType>
+BitSet<_ValueType, _SizeType>& BitSet<_ValueType, _SizeType>::operator&=(const BitSet& _another) noexcept
 {
+	if (_elementSet.size() == _another._elementSet.size())
+		for (decltype(_elementSet.size()) index = 0; index < _elementSet.size(); ++index)
+			_elementSet[index] &= _another._elementSet[index];
+	return *this;
+}
+
+template <typename _ValueType, typename _SizeType>
+BitSet<_ValueType, _SizeType>& BitSet<_ValueType, _SizeType>::operator|=(const BitSet& _another) noexcept
+{
+	if (_elementSet.size() == _another._elementSet.size())
+		for (decltype(_elementSet.size()) index = 0; index < _elementSet.size(); ++index)
+			_elementSet[index] |= _another._elementSet[index];
+	return *this;
+}
+
+template <typename _ValueType, typename _SizeType>
+BitSet<_ValueType, _SizeType>& BitSet<_ValueType, _SizeType>::operator^=(const BitSet& _another) noexcept
+{
+	if (_elementSet.size() == _another._elementSet.size())
+		for (decltype(_elementSet.size()) index = 0; index < _elementSet.size(); ++index)
+			_elementSet[index] ^= _another._elementSet[index];
+	return *this;
+}
+
+// 统计有效位
+template <typename _ValueType, typename _SizeType>
+typename BitSet<_ValueType, _SizeType>::SizeType BitSet<_ValueType, _SizeType>::count() const noexcept
+{
+	static constexpr unsigned char maxChar = ~static_cast<unsigned char>('\0');
+
 	const char* const bitTable = \
 		"\0\1\1\2\1\2\2\3\1\2\2\3\2\3\3\4"
 		"\1\2\2\3\2\3\3\4\2\3\3\4\3\4\4\5"
@@ -169,36 +207,44 @@ typename BitSet<_SizeType>::SizeType BitSet<_SizeType>::count() const noexcept
 		"\4\5\5\6\5\6\6\7\5\6\6\7\6\7\7\x8";
 
 	SizeType counter = 0;
-	for (decltype(_byteSet.size()) index = 0; index < _byteSet.size(); ++index)
-		counter += bitTable[static_cast<unsigned char>(_byteSet[index])];
+	for (decltype(_elementSet.size()) index = 0; index < _elementSet.size(); ++index)
+	{
+		auto element = _elementSet[index];
+		for (decltype(sizeof element) index = 0; index < sizeof element; ++index)
+		{
+			counter += bitTable[element & maxChar];
+			element >>= CHAR_BIT;
+		}
+	}
 	return counter;
 }
 
 // 所有位为真
-template <typename _SizeType>
-bool BitSet<_SizeType>::all() const noexcept
+template <typename _ValueType, typename _SizeType>
+bool BitSet<_ValueType, _SizeType>::all() const noexcept
 {
-	for (decltype(_byteSet.size()) index = 0; index < _byteSet.size(); ++index)
-		if (_byteSet[index] != ~'\0')
+	static constexpr ValueType maxElement = ~static_cast<ValueType>(0);
+	for (decltype(_elementSet.size()) index = 0; index < _elementSet.size(); ++index)
+		if (_elementSet[index] != maxElement)
 			return false;
 	return true;
 }
 
 // 任意位为真
-template <typename _SizeType>
-bool BitSet<_SizeType>::any() const noexcept
+template <typename _ValueType, typename _SizeType>
+bool BitSet<_ValueType, _SizeType>::any() const noexcept
 {
-	for (decltype(_byteSet.size()) index = 0; index < _byteSet.size(); ++index)
-		if (_byteSet[index] != '\0')
+	for (decltype(_elementSet.size()) index = 0; index < _elementSet.size(); ++index)
+		if (_elementSet[index] != 0)
 			return true;
 	return false;
 }
 
 // 翻转所有位
-template <typename _SizeType>
-BitSet<_SizeType>& BitSet<_SizeType>::flip() noexcept
+template <typename _ValueType, typename _SizeType>
+BitSet<_ValueType, _SizeType>& BitSet<_ValueType, _SizeType>::flip() noexcept
 {
-	for (decltype(_byteSet.size()) index = 0; index < _byteSet.size(); ++index)
-		_byteSet[index] = ~_byteSet[index];
+	for (decltype(_elementSet.size()) index = 0; index < _elementSet.size(); ++index)
+		_elementSet[index] = ~_elementSet[index];
 	return *this;
 }

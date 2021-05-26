@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-template <typename _SizeType>
-void dump(const BitSet<_SizeType>& bitSet, _SizeType x1, _SizeType x2)
+template <typename _ValueType, typename _SizeType>
+void dump(const BitSet<_ValueType, _SizeType>& bitSet, _SizeType x1, _SizeType x2)
 {
 	using std::cout;
 	using std::boolalpha;
@@ -23,8 +23,8 @@ int main()
 	using std::cout;
 	using std::endl;
 
-	BitSet<> bitSet(3);
-	BitSet<>::SizeType x1 = 9, x2 = 19;
+	BitSet<uint64_t> bitSet(2);
+	BitSet<uint64_t>::SizeType x1 = 9, x2 = 79;
 
 	bitSet.set(x1);
 	dump(bitSet, x1, x2);
