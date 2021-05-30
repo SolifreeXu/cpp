@@ -4,7 +4,7 @@ C++之道的精选代码，按照语言特性、数据结构、算法、设计�
 ## 语言特性
 通用工具组件：[utility](feature/utility)  
 共享互斥元组件：[shared_mutex](feature/shared_mutex)
-位集类模板：[bitset](feature/bitset/BitSet.hpp)
+位集类模板：[bitset](feature/bitset)
 ### iostream
 [fixed-point decimal precision](feature/iostream/fixed-point%20decimal%20precision.cpp)
 
