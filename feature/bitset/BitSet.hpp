@@ -54,7 +54,7 @@ public:
 
 	bool operator[](SizeType _position) const noexcept
 	{
-		return size(_position) <= _elementSet.size() && (_elementSet[_position >> _sizeBit] & generate(_position)) > 0;
+		return size(_position + 1) <= _elementSet.size() && (_elementSet[_position >> _sizeBit] & generate(_position)) > 0;
 	}
 
 	BitSet& operator&=(const BitSet& _another) noexcept;
@@ -114,7 +114,7 @@ public:
 		if (!_value)
 			return reset(_position);
 
-		reserve(_position);
+		reserve(_position + 1);
 
 		_elementSet[_position >> _sizeBit] |= generate(_position);
 		return *this;
@@ -130,7 +130,7 @@ public:
 	// 重置指定位
 	BitSet& reset(SizeType _position)
 	{
-		reserve(_position);
+		reserve(_position + 1);
 
 		_elementSet[_position >> _sizeBit] &= ~generate(_position);
 		return *this;
@@ -142,7 +142,7 @@ public:
 	// 翻转指定位
 	BitSet& flip(SizeType _position)
 	{
-		reserve(_position);
+		reserve(_position + 1);
 
 		_elementSet[_position >> _sizeBit] ^= generate(_position);
 		return *this;
