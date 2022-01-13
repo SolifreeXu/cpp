@@ -21,10 +21,9 @@ double dispatching
 
 ## 工具类库
 排序者：[Sorter](tool/Sorter)
+数值库：Numeric
 ### MySQL
 连接器：Connector
-### 新版
-数值库：Numeric
 ### 旧版
 Fraction  
 Complex  
