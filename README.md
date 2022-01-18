@@ -20,7 +20,7 @@ C++之道的精选代码，按照语言特性、数据结构、算法、设计�
 double dispatching
 
 ## 工具类库
-排序者：[Sorter](tool/Sorter)
+排序者：[Sorter](tool/Sorter)  
 数值库：Numeric
 ### MySQL
 连接器：Connector
