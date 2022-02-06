@@ -8,15 +8,18 @@
 * 作者：许聪
 * 邮箱：2592419242@qq.com
 * 创建日期：2022年02月02日
+* 更新日期：2022年02月06日
 */
 
 #pragma once
 
+#include <type_traits>
 #include <utility>
 #include <cstddef>
 #include <optional>
 #include <cstdint>
 #include <map>
+#include <unordered_map>
 
 template <typename _KeyType, typename _ValueType>
 class LRUQueue
@@ -29,12 +32,12 @@ public:
 private:
 	using QueueType = std::map<SizeType, KeyType>;
 	using PairType = std::pair<ValueType, SizeType>;
-	using PoolType = std::map<KeyType, PairType>;
+	using PoolType = std::unordered_map<KeyType, PairType>;
 
 	SizeType _capacity;
 	SizeType _counter; // [0, SIZE_MAX)
 	QueueType _queue; // count -> key
-	PoolType _mappings; // key -> pair(value, count)
+	PoolType _pool; // key -> pair(value, count)
 
 private:
 	void insert(const KeyType& _key, const ValueType& _value);
@@ -44,7 +47,7 @@ private:
 	void adjust();
 
 public:
-	// 若_capacity小于等于零，则无限制，否则为上限值
+	// 若_capacity小于等于零，则无限制，否则其为上限值
 	LRUQueue(SizeType _capacity = 0) : _capacity(_capacity), _counter(0) {}
 
 	auto capacity() const noexcept { return _capacity; }
@@ -72,7 +75,7 @@ void LRUQueue<_KeyType, _ValueType>::insert(const KeyType& _key, const ValueType
 {
 	auto count = _counter++;
 	_queue.emplace(count, _key);
-	_mappings.emplace(_key, std::make_pair(_value, count));
+	_pool.emplace(_key, std::make_pair(_value, count));
 }
 
 template <typename _KeyType, typename _ValueType>
@@ -80,7 +83,7 @@ void LRUQueue<_KeyType, _ValueType>::insert(const KeyType& _key, ValueType&& _va
 {
 	auto count = _counter++;
 	_queue.emplace(count, _key);
-	_mappings.emplace(_key, std::make_pair(std::forward<ValueType>(_value), count));
+	_pool.emplace(_key, std::make_pair(std::forward<ValueType>(_value), count));
 }
 
 template <typename _KeyType, typename _ValueType>
@@ -89,7 +92,7 @@ void LRUQueue<_KeyType, _ValueType>::erase() noexcept
 	while (_capacity > 0 && _queue.size() >= _capacity)
 	{
 		auto iterator = _queue.begin();
-		_mappings.erase(iterator->second);
+		_pool.erase(iterator->second);
 		_queue.erase(iterator);
 	}
 }
@@ -104,19 +107,20 @@ void LRUQueue<_KeyType, _ValueType>::adjust()
 	for (auto iterQueue = _queue.begin(); iterQueue != _queue.end(); ++iterQueue)
 	{
 		auto count = _counter++;
+		using SizeType = std::remove_const_t<decltype(iterQueue->first)>;
 		const_cast<SizeType&>(iterQueue->first) = count;
 
-		if (auto iterMappings = _mappings.find(iterQueue->second); \
-			iterMappings != _mappings.end())
-			iterMappings->second.second = count;
+		if (auto iterPool = _pool.find(iterQueue->second); \
+			iterPool != _pool.end())
+			iterPool->second.second = count;
 	}
 }
 
 template <typename _KeyType, typename _ValueType>
 bool LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key, ValueType& _value)
 {
-	auto iterator = _mappings.find(_key);
-	if (iterator == _mappings.end())
+	auto iterator = _pool.find(_key);
+	if (iterator == _pool.end())
 		return false;
 
 	_value = iterator->second.first;
@@ -149,20 +153,20 @@ void LRUQueue<_KeyType, _ValueType>::push(const KeyType& _key, ValueType&& _valu
 template <typename _KeyType, typename _ValueType>
 auto LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key) -> std::optional<ValueType>
 {
-	auto iterator = _mappings.find(_key);
-	if (iterator == _mappings.end())
+	auto iterator = _pool.find(_key);
+	if (iterator == _pool.end())
 		return std::nullopt;
 
 	std::optional<ValueType> value = iterator->second.first;
 	_queue.erase(iterator->second.second);
-	_mappings.erase(iterator);
+	_pool.erase(iterator);
 	return value;
 }
 
 template <typename _KeyType, typename _ValueType>
 void LRUQueue<_KeyType, _ValueType>::clear() noexcept
 {
-	_mappings.clear();
+	_pool.clear();
 	_queue.clear();
 	_counter = 0;
 }
