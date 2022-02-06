@@ -104,15 +104,14 @@ void LRUQueue<_KeyType, _ValueType>::adjust()
 		return;
 
 	_counter = 0;
-	for (auto iterQueue = _queue.begin(); iterQueue != _queue.end(); ++iterQueue)
+	for (auto& [count, key] : _queue)
 	{
-		auto count = _counter++;
-		using SizeType = std::remove_const_t<decltype(iterQueue->first)>;
-		const_cast<SizeType&>(iterQueue->first) = count;
+		using SizeType = std::remove_const_t<std::remove_reference_t<decltype(count)>>;
+		const_cast<SizeType&>(count) = _counter++;
 
-		if (auto iterPool = _pool.find(iterQueue->second); \
-			iterPool != _pool.end())
-			iterPool->second.second = count;
+		if (auto iterator = _pool.find(key); \
+			iterator != _pool.end())
+			iterator->second.second = count;
 	}
 }
 
@@ -123,11 +122,11 @@ bool LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key, ValueType& _value
 	if (iterator == _pool.end())
 		return false;
 
-	_value = iterator->second.first;
-	_queue.erase(iterator->second.second);
+	auto& [value, count] = iterator->second;
+	_value = value;
+	_queue.erase(count);
 
-	auto count = _counter++;
-	iterator->second.second = count;
+	count = _counter++;
 	_queue.emplace(count, _key);
 
 	adjust();
