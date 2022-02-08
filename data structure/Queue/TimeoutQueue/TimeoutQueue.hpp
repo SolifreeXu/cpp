@@ -2,7 +2,7 @@
 * 文件名称：TimeoutQueue.hpp
 * 摘要：
 * 1.超时队列按照时间对元素排序，提供放入、取出、清空等方法。
-*   支持根据超时与索引移除元素，以及指定时间批量取出超时元素。
+*   支持根据索引移除元素，以及指定时间批量取出超时元素。
 *
 * 版本：v1.0.0
 * 作者：许聪
@@ -53,6 +53,7 @@ public:
 	bool empty() const noexcept { return _queue.empty(); }
 
 	bool push(const IndexType& _index, const ElementType& _element, TimeType _time);
+	bool push(const IndexType& _index, ElementType&& _element, TimeType _time);
 
 	std::optional<ElementType> pop(const IndexType& _index);
 	bool pop(TimeType _time, VectorType& _vector);
@@ -88,6 +89,17 @@ bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::push(const IndexType& _i
 
 	_queue.emplace(_time, _index);
 	_pool.emplace(_index, std::make_pair(_element, _time));
+	return true;
+}
+
+template <typename _IndexType, typename _ElementType, typename _TimeType>
+bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::push(const IndexType& _index, ElementType&& _element, TimeType _time)
+{
+	if (_capacity > 0 && _queue.size() >= _capacity)
+		return false;
+
+	_queue.emplace(_time, _index);
+	_pool.emplace(_index, std::make_pair(std::forward<ElementType>(_element), _time));
 	return true;
 }
 
