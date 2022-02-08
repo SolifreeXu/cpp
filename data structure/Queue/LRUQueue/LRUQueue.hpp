@@ -56,12 +56,7 @@ public:
 	auto size() const noexcept { return _queue.size(); }
 	bool empty() const noexcept { return _queue.empty(); }
 
-	bool find(const KeyType& _key, ValueType& _value);
-	std::optional<ValueType> find(const KeyType& _key)
-	{
-		ValueType value;
-		return find(_key, value) ? value : std::optional<ValueType>();
-	}
+	std::optional<ValueType> find(const KeyType& _key);
 
 	void push(const KeyType& _key, const ValueType& _value);
 	void push(const KeyType& _key, ValueType&& _value);
@@ -116,21 +111,20 @@ void LRUQueue<_KeyType, _ValueType>::adjust()
 }
 
 template <typename _KeyType, typename _ValueType>
-bool LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key, ValueType& _value)
+auto LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key) -> std::optional<ValueType>
 {
 	auto iterator = _pool.find(_key);
 	if (iterator == _pool.end())
-		return false;
+		return std::nullopt;
 
 	auto& [value, count] = iterator->second;
-	_value = value;
 	_queue.erase(count);
 
 	count = _counter++;
 	_queue.emplace(count, _key);
 
 	adjust();
-	return true;
+	return value;
 }
 
 template <typename _KeyType, typename _ValueType>
@@ -156,10 +150,10 @@ auto LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key) -> std::optional<V
 	if (iterator == _pool.end())
 		return std::nullopt;
 
-	std::optional<ValueType> value = iterator->second.first;
+	std::optional<ValueType> result = iterator->second.first;
 	_queue.erase(iterator->second.second);
 	_pool.erase(iterator);
-	return value;
+	return result;
 }
 
 template <typename _KeyType, typename _ValueType>
