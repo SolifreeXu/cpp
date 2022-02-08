@@ -11,6 +11,7 @@ C++之道的精选代码，按照语言特性、数据结构、算法、设计�
 ## 数据结构
 哈夫曼树：[HuffmanTree](data%20structure/HuffmanTree.cpp)
 ### 队列
+超时队列：[TimeoutQueue](data%20structure/Queue/TimeoutQueue)  
 最近最久未使用置换队列：[LRUQueue](data%20structure/Queue/LRUQueue)
 ### 并发
 无锁并发链栈：[Stack](data%20structure/Stack)
