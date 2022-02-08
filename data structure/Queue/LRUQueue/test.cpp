@@ -37,7 +37,11 @@ int main()
 	if (auto result = queue.find(9))
 		std::cout << result.value() << std::endl;
 
+	std::cout << queue.size() << std::endl;
 	queue.pop(9);
+	std::cout << queue.size() << std::endl;
+
 	queue.clear();
+	std::cout << std::boolalpha << queue.empty() << std::endl;
 	return 0;
 }
