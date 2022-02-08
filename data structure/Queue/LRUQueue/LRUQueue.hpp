@@ -8,7 +8,7 @@
 * 作者：许聪
 * 邮箱：2592419242@qq.com
 * 创建日期：2022年02月02日
-* 更新日期：2022年02月06日
+* 更新日期：2022年02月08日
 */
 
 #pragma once
@@ -150,8 +150,10 @@ auto LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key) -> std::optional<V
 	if (iterator == _pool.end())
 		return std::nullopt;
 
-	std::optional<ValueType> result = iterator->second.first;
-	_queue.erase(iterator->second.second);
+	auto& [value, count] = iterator->second;
+	std::optional result = value;
+
+	_queue.erase(count);
 	_pool.erase(iterator);
 	return result;
 }
