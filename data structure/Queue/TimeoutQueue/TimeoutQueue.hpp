@@ -3,12 +3,12 @@
 * 摘要：
 * 1.超时队列按照时间对元素排序，提供放入、取出、清空等方法。
 *   支持根据索引移除元素，以及指定时间批量取出超时元素。
-*
+* 
 * 版本：v1.0.0
 * 作者：许聪
 * 邮箱：2592419242@qq.com
 * 创建日期：2022年01月28日
-* 更新日期：2022年02月08日
+* 更新日期：2022年02月10日
 */
 
 #pragma once
@@ -55,7 +55,9 @@ public:
 	bool push(const IndexType& _index, const ElementType& _element, TimeType _time);
 	bool push(const IndexType& _index, ElementType&& _element, TimeType _time);
 
+	bool pop(const IndexType& _index, ElementType& _element);
 	std::optional<ElementType> pop(const IndexType& _index);
+
 	bool pop(TimeType _time, VectorType& _vector);
 
 	void clear() noexcept
@@ -100,6 +102,21 @@ bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::push(const IndexType& _i
 
 	_queue.emplace(_time, _index);
 	_pool.emplace(_index, std::make_pair(std::forward<ElementType>(_element), _time));
+	return true;
+}
+
+template <typename _IndexType, typename _ElementType, typename _TimeType>
+bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(const IndexType& _index, ElementType& _element)
+{
+	auto iterator = _pool.find(_index);
+	if (iterator == _pool.end())
+		return false;
+
+	auto& [element, time] = iterator->second;
+	_element = element;
+
+	erase(time, _index);
+	_pool.erase(iterator);
 	return true;
 }
 

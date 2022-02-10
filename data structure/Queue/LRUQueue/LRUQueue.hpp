@@ -3,12 +3,12 @@
 * 摘要：
 * 1.页面置换算法：最近最久未使用(Least Recently Used)。
 * 2.LRU队列按照最近访问顺序对元素排序，提供查找、放入、取出、清空等方法。
-*
+* 
 * 版本：v1.0.0
 * 作者：许聪
 * 邮箱：2592419242@qq.com
 * 创建日期：2022年02月02日
-* 更新日期：2022年02月08日
+* 更新日期：2022年02月10日
 */
 
 #pragma once
@@ -56,12 +56,15 @@ public:
 	auto size() const noexcept { return _queue.size(); }
 	bool empty() const noexcept { return _queue.empty(); }
 
+	bool find(const KeyType& _key, ValueType& _value);
 	std::optional<ValueType> find(const KeyType& _key);
 
 	void push(const KeyType& _key, const ValueType& _value);
 	void push(const KeyType& _key, ValueType&& _value);
 
+	bool pop(const KeyType& _key, ValueType& _value);
 	std::optional<ValueType> pop(const KeyType& _key);
+
 	void clear() noexcept;
 };
 
@@ -111,6 +114,24 @@ void LRUQueue<_KeyType, _ValueType>::adjust()
 }
 
 template <typename _KeyType, typename _ValueType>
+bool LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key, ValueType& _value)
+{
+	auto iterator = _pool.find(_key);
+	if (iterator == _pool.end())
+		return false;
+
+	auto& [value, count] = iterator->second;
+	_value = value;
+
+	_queue.erase(count);
+	count = _counter++;
+	_queue.emplace(count, _key);
+
+	adjust();
+	return true;
+}
+
+template <typename _KeyType, typename _ValueType>
 auto LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key) -> std::optional<ValueType>
 {
 	auto iterator = _pool.find(_key);
@@ -119,7 +140,6 @@ auto LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key) -> std::optional<
 
 	auto& [value, count] = iterator->second;
 	_queue.erase(count);
-
 	count = _counter++;
 	_queue.emplace(count, _key);
 
@@ -141,6 +161,21 @@ void LRUQueue<_KeyType, _ValueType>::push(const KeyType& _key, ValueType&& _valu
 	erase();
 	insert(_key, std::forward<ValueType>(_value));
 	adjust();
+}
+
+template <typename _KeyType, typename _ValueType>
+bool LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key, ValueType& _value)
+{
+	auto iterator = _pool.find(_key);
+	if (iterator == _pool.end())
+		return false;
+
+	auto& [value, count] = iterator->second;
+	_value = value;
+
+	_queue.erase(count);
+	_pool.erase(iterator);
+	return true;
 }
 
 template <typename _KeyType, typename _ValueType>
