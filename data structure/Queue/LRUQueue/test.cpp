@@ -7,7 +7,7 @@ struct Key
 {
 	int _integer;
 
-	Key(int _integer) : _integer(_integer) {}
+	Key(decltype(_integer) _integer) : _integer(_integer) {}
 
 	friend bool operator==(const Key& _left, const Key& _right) noexcept
 	{
@@ -31,7 +31,7 @@ namespace std
 int main()
 {
 	LRUQueue<Key, int> queue(9);
-	for (int index = 0; index < 10; ++index)
+	for (auto index = 0; index < 10; ++index)
 		queue.push(index, index);
 
 	if (auto result = queue.find(9))

@@ -48,10 +48,10 @@ private:
 
 public:
 	// 若_capacity小于等于零，则无限制，否则其为上限值
-	LRUQueue(SizeType _capacity = 0) : _capacity(_capacity), _counter(0) {}
+	LRUQueue(decltype(_capacity) _capacity = 0) : _capacity(_capacity), _counter(0) {}
 
 	auto capacity() const noexcept { return _capacity; }
-	void reserve(SizeType _capacity) noexcept { this->_capacity = _capacity; }
+	void reserve(decltype(_capacity) _capacity) noexcept { this->_capacity = _capacity; }
 
 	auto size() const noexcept { return _queue.size(); }
 	bool empty() const noexcept { return _queue.empty(); }

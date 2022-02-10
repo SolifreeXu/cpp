@@ -44,10 +44,10 @@ private:
 	void erase(TimeType _time, const IndexType& _index);
 
 public:
-	TimeoutQueue(SizeType _capacity = 0) : _capacity(_capacity) {}
+	TimeoutQueue(decltype(_capacity) _capacity = 0) : _capacity(_capacity) {}
 
 	auto capacity() const noexcept { return _capacity; }
-	void reserve(SizeType _capacity) noexcept { this->_capacity = _capacity; }
+	void reserve(decltype(_capacity) _capacity) noexcept { this->_capacity = _capacity; }
 
 	auto size() const noexcept { return _queue.size(); }
 	bool empty() const noexcept { return _queue.empty(); }
