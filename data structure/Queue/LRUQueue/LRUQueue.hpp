@@ -8,7 +8,7 @@
 * 作者：许聪
 * 邮箱：2592419242@qq.com
 * 创建日期：2022年02月02日
-* 更新日期：2022年02月10日
+* 更新日期：2022年02月15日
 */
 
 #pragma once
@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <optional>
 #include <cstdint>
+#include <vector>
 #include <map>
 #include <unordered_map>
 
@@ -28,11 +29,12 @@ public:
 	using SizeType = std::size_t;
 	using KeyType = _KeyType;
 	using ValueType = _ValueType;
+	using PairType = std::pair<KeyType, ValueType>;
+	using VectorType = std::vector<PairType>;
 
 private:
 	using QueueType = std::map<SizeType, KeyType>;
-	using PairType = std::pair<ValueType, SizeType>;
-	using PoolType = std::unordered_map<KeyType, PairType>;
+	using PoolType = std::unordered_map<KeyType, std::pair<ValueType, SizeType>>;
 
 	SizeType _capacity;
 	SizeType _counter; // [0, SIZE_MAX)
@@ -66,6 +68,7 @@ public:
 	std::optional<ValueType> pop(const KeyType& _key);
 
 	void clear() noexcept;
+	void clear(VectorType& _vector);
 };
 
 template <typename _KeyType, typename _ValueType>
@@ -199,4 +202,16 @@ void LRUQueue<_KeyType, _ValueType>::clear() noexcept
 	_pool.clear();
 	_queue.clear();
 	_counter = 0;
+}
+
+template <typename _KeyType, typename _ValueType>
+void LRUQueue<_KeyType, _ValueType>::clear(VectorType& _vector)
+{
+	_vector.reserve(_vector.size() + _queue.size());
+	for (const auto& [count, key] : _queue)
+		if (auto iterator = _pool.find(key); \
+			iterator != _pool.end())
+			_vector.emplace_back(iterator->first, iterator->second.first);
+
+	clear();
 }

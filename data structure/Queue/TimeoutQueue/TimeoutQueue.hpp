@@ -8,7 +8,7 @@
 * 作者：许聪
 * 邮箱：2592419242@qq.com
 * 创建日期：2022年01月28日
-* 更新日期：2022年02月10日
+* 更新日期：2022年02月15日
 */
 
 #pragma once
@@ -60,11 +60,8 @@ public:
 
 	bool pop(TimeType _time, VectorType& _vector);
 
-	void clear() noexcept
-	{
-		_queue.clear();
-		_pool.clear();
-	}
+	void clear() noexcept;
+	void clear(VectorType& _vector);
 };
 
 template <typename _IndexType, typename _ElementType, typename _TimeType>
@@ -155,4 +152,22 @@ bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(TimeType _time, Vect
 		}
 	}
 	return result;
+}
+
+template <typename _IndexType, typename _ElementType, typename _TimeType>
+void TimeoutQueue<_IndexType, _ElementType, _TimeType>::clear() noexcept
+{
+	_queue.clear();
+	_pool.clear();
+}
+
+template <typename _IndexType, typename _ElementType, typename _TimeType>
+void TimeoutQueue<_IndexType, _ElementType, _TimeType>::clear(VectorType& _vector)
+{
+	_vector.reserve(_vector.size() + _queue.size());
+	for (const auto& [time, index] : _queue)
+		if (auto iterator = _pool.find(index); iterator != _pool.end())
+			_vector.emplace_back(iterator->first, iterator->second.first);
+
+	clear();
 }
