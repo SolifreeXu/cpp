@@ -59,9 +59,9 @@ public:
 	std::optional<ElementType> pop(const IndexType& _index);
 
 	bool pop(TimeType _time, VectorType& _vector);
+	bool pop(VectorType& _vector);
 
 	void clear() noexcept;
-	void clear(VectorType& _vector);
 };
 
 template <typename _IndexType, typename _ElementType, typename _TimeType>
@@ -155,19 +155,23 @@ bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(TimeType _time, Vect
 }
 
 template <typename _IndexType, typename _ElementType, typename _TimeType>
-void TimeoutQueue<_IndexType, _ElementType, _TimeType>::clear() noexcept
+bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(VectorType& _vector)
 {
-	_queue.clear();
-	_pool.clear();
-}
+	if (_queue.empty())
+		return false;
 
-template <typename _IndexType, typename _ElementType, typename _TimeType>
-void TimeoutQueue<_IndexType, _ElementType, _TimeType>::clear(VectorType& _vector)
-{
 	_vector.reserve(_vector.size() + _queue.size());
 	for (const auto& [time, index] : _queue)
 		if (auto iterator = _pool.find(index); iterator != _pool.end())
 			_vector.emplace_back(iterator->first, iterator->second.first);
 
 	clear();
+	return true;
+}
+
+template <typename _IndexType, typename _ElementType, typename _TimeType>
+void TimeoutQueue<_IndexType, _ElementType, _TimeType>::clear() noexcept
+{
+	_queue.clear();
+	_pool.clear();
 }

@@ -67,8 +67,9 @@ public:
 	bool pop(const KeyType& _key, ValueType& _value);
 	std::optional<ValueType> pop(const KeyType& _key);
 
+	bool pop(VectorType& _vector);
+
 	void clear() noexcept;
-	void clear(VectorType& _vector);
 };
 
 template <typename _KeyType, typename _ValueType>
@@ -197,16 +198,11 @@ auto LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key) -> std::optional<V
 }
 
 template <typename _KeyType, typename _ValueType>
-void LRUQueue<_KeyType, _ValueType>::clear() noexcept
+bool LRUQueue<_KeyType, _ValueType>::pop(VectorType& _vector)
 {
-	_pool.clear();
-	_queue.clear();
-	_counter = 0;
-}
+	if (_queue.empty())
+		return false;
 
-template <typename _KeyType, typename _ValueType>
-void LRUQueue<_KeyType, _ValueType>::clear(VectorType& _vector)
-{
 	_vector.reserve(_vector.size() + _queue.size());
 	for (const auto& [count, key] : _queue)
 		if (auto iterator = _pool.find(key); \
@@ -214,4 +210,13 @@ void LRUQueue<_KeyType, _ValueType>::clear(VectorType& _vector)
 			_vector.emplace_back(iterator->first, iterator->second.first);
 
 	clear();
+	return true;
+}
+
+template <typename _KeyType, typename _ValueType>
+void LRUQueue<_KeyType, _ValueType>::clear() noexcept
+{
+	_pool.clear();
+	_queue.clear();
+	_counter = 0;
 }
