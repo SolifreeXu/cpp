@@ -15,7 +15,7 @@ int main()
 	QueueType queue;
 	for (const auto& element : array)
 	{
-		std::time_t time = std::time(nullptr);
+		auto time = std::time(nullptr);
 		queue.push(&element, element, time);
 	}
 
@@ -25,8 +25,8 @@ int main()
 
 	QueueType::VectorType vector;
 	if (queue.pop(std::time(nullptr), vector))
-		for (const auto& pair : vector)
-			std::cout << pair.first << ' ' << pair.second << std::endl;
+		for (const auto& [address, element] : vector)
+			std::cout << address << ' ' << element << std::endl;
 
 	std::cout << std::boolalpha << queue.empty() << std::endl;
 	return 0;

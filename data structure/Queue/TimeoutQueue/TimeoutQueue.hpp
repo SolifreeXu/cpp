@@ -1,14 +1,18 @@
 ﻿/*
 * 文件名称：TimeoutQueue.hpp
-* 摘要：
+* 语言标准：C++20
+* 
+* 创建日期：2022年01月28日
+* 更新日期：2022年02月26日
+* 
+* 摘要
 * 1.超时队列按照时间对元素排序，提供放入、取出、清空等方法。
 *   支持根据索引移除元素，以及指定时间批量取出超时元素。
 * 
-* 版本：v1.0.0
 * 作者：许聪
-* 邮箱：2592419242@qq.com
-* 创建日期：2022年01月28日
-* 更新日期：2022年02月15日
+* 邮箱：solifree@qq.com
+* 
+* 版本：v1.0.0
 */
 
 #pragma once
@@ -25,15 +29,13 @@ public:
 	using IndexType = _IndexType;
 	using ElementType = _ElementType;
 	using TimeType = _TimeType;
+	using PairType = std::pair<IndexType, ElementType>;
+	using VectorType = std::vector<PairType>;
+	using SizeType = VectorType::size_type;
 
 private:
 	using QueueType = std::multimap<TimeType, IndexType>;
 	using PoolType = std::map<IndexType, std::pair<ElementType, TimeType>>;
-
-public:
-	using SizeType = typename QueueType::size_type;
-	using PairType = std::pair<IndexType, ElementType>;
-	using VectorType = std::vector<PairType>;
 
 private:
 	SizeType _capacity;
@@ -44,10 +46,14 @@ private:
 	void erase(TimeType _time, const IndexType& _index);
 
 public:
-	TimeoutQueue(decltype(_capacity) _capacity = 0) : _capacity(_capacity) {}
+	TimeoutQueue(decltype(_capacity) _capacity = 0)
+		: _capacity(_capacity) {}
 
 	auto capacity() const noexcept { return _capacity; }
-	void reserve(decltype(_capacity) _capacity) noexcept { this->_capacity = _capacity; }
+	void reserve(decltype(_capacity) _capacity) noexcept
+	{
+		this->_capacity = _capacity;
+	}
 
 	auto size() const noexcept { return _queue.size(); }
 	bool empty() const noexcept { return _queue.empty(); }

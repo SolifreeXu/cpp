@@ -1,21 +1,24 @@
 ﻿/*
 * 文件名称：LRUQueue.hpp
-* 摘要：
+* 语言标准：C++20
+* 
+* 创建日期：2022年02月02日
+* 更新日期：2022年02月26日
+* 
+* 摘要
 * 1.页面置换算法：最近最久未使用(Least Recently Used)。
 * 2.LRU队列按照最近访问顺序对元素排序，提供查找、放入、取出、清空等方法。
 * 
-* 版本：v1.0.0
 * 作者：许聪
-* 邮箱：2592419242@qq.com
-* 创建日期：2022年02月02日
-* 更新日期：2022年02月15日
+* 邮箱：solifree@qq.com
+* 
+* 版本：v1.0.0
 */
 
 #pragma once
 
 #include <type_traits>
 #include <utility>
-#include <cstddef>
 #include <optional>
 #include <cstdint>
 #include <vector>
@@ -26,16 +29,17 @@ template <typename _KeyType, typename _ValueType>
 class LRUQueue
 {
 public:
-	using SizeType = std::size_t;
 	using KeyType = _KeyType;
 	using ValueType = _ValueType;
 	using PairType = std::pair<KeyType, ValueType>;
 	using VectorType = std::vector<PairType>;
+	using SizeType = VectorType::size_type;
 
 private:
 	using QueueType = std::map<SizeType, KeyType>;
 	using PoolType = std::unordered_map<KeyType, std::pair<ValueType, SizeType>>;
 
+private:
 	SizeType _capacity;
 	SizeType _counter; // [0, SIZE_MAX)
 	QueueType _queue; // count -> key
@@ -45,18 +49,28 @@ private:
 	void insert(const KeyType& _key, const ValueType& _value);
 	void insert(const KeyType& _key, ValueType&& _value);
 
-	void erase() noexcept;
+	void erase();
+
 	void adjust();
 
 public:
 	// 若_capacity小于等于零，则无限制，否则其为上限值
-	LRUQueue(decltype(_capacity) _capacity = 0) : _capacity(_capacity), _counter(0) {}
+	LRUQueue(decltype(_capacity) _capacity = 0)
+		: _capacity(_capacity), _counter(0) {}
 
 	auto capacity() const noexcept { return _capacity; }
-	void reserve(decltype(_capacity) _capacity) noexcept { this->_capacity = _capacity; }
+	void reserve(decltype(_capacity) _capacity) noexcept
+	{
+		this->_capacity = _capacity;
+	}
 
 	auto size() const noexcept { return _queue.size(); }
 	bool empty() const noexcept { return _queue.empty(); }
+
+	bool contain(const KeyType& _key) const
+	{
+		return _pool.contains(_key);
+	}
 
 	bool find(const KeyType& _key, ValueType& _value);
 	std::optional<ValueType> find(const KeyType& _key);
@@ -89,7 +103,7 @@ void LRUQueue<_KeyType, _ValueType>::insert(const KeyType& _key, ValueType&& _va
 }
 
 template <typename _KeyType, typename _ValueType>
-void LRUQueue<_KeyType, _ValueType>::erase() noexcept
+void LRUQueue<_KeyType, _ValueType>::erase()
 {
 	while (_capacity > 0 && _queue.size() >= _capacity)
 	{
