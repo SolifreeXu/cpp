@@ -160,6 +160,9 @@ public:
 		return _vector.size();
 	}
 
+	// 改变元素数量
+	BitSet& resize(SizeType _size, bool _forced = false);
+
 	// 统计有效位
 	SizeType count() const noexcept;
 
@@ -180,9 +183,6 @@ public:
 	{
 		return all(0);
 	}
-
-	// 改变元素数量
-	BitSet& resize(SizeType _size, bool _forced = false);
 
 	// 设置指定位
 	BitSet& set(SizeType _position, bool _value = true);
@@ -382,6 +382,15 @@ BitSet<_ValueType>& BitSet<_ValueType>::operator>>=(SizeType _position) noexcept
 	return *this;
 }
 
+// 改变元素数量
+template <std::unsigned_integral _ValueType>
+BitSet<_ValueType>& BitSet<_ValueType>::resize(SizeType _size, bool _forced)
+{
+	if (_forced || _size > _vector.size())
+		_vector.resize(_size, 0);
+	return *this;
+}
+
 // 统计有效位
 template <std::unsigned_integral _ValueType>
 auto BitSet<_ValueType>::count() const noexcept -> SizeType
@@ -413,15 +422,6 @@ auto BitSet<_ValueType>::count() const noexcept -> SizeType
 			element >>= CHAR_BIT;
 		}
 	return counter;
-}
-
-// 改变元素数量
-template <std::unsigned_integral _ValueType>
-BitSet<_ValueType>& BitSet<_ValueType>::resize(SizeType _size, bool _forced)
-{
-	if (_forced || _size > _vector.size())
-		_vector.resize(_size, 0);
-	return *this;
 }
 
 // 设置指定位
