@@ -1,30 +1,4 @@
-﻿/*
-* 文件名称：BitSet.hpp
-* 语言标准：C++20
-* 
-* 创建日期：2021年05月24日
-* 更新日期：2022年03月10日
-* 
-* 摘要
-* 1.位集合类模板参照C++标准，自定义无符号整型元素，节省内存而不受字节序影响。
-* 2.位集合支持动态扩大容量，提供位与集合两种位运算。
-* 
-* 用例
-* 1.位集合如何移除另一位集合含有的元素？
-*   二者依次进行或运算和异或运算。
-* 2.位集合如何实现旋转？
-*   分别左移与右移，得到两个中间位集合，二者进行或运算。
-* 
-* 作者：许聪
-* 邮箱：solifree@qq.com
-* 
-* 版本：v1.0.1
-* 变化
-* v1.0.1
-* 1.新增范围设置、重置、翻转、复制，以及移位运算。
-*/
-
-#pragma once
+﻿#pragma once
 
 #include <concepts>
 #include <type_traits>
@@ -49,7 +23,36 @@ private:
 	static constexpr ValueType _maxElement = ~static_cast<ValueType>(0); // 单元素最大值
 	static constexpr SizeType _maxPosition = CHAR_BIT * sizeof(ValueType) - 1; // 单元素之位置最大值
 	static const SizeType _bitSize; // 单元素之位数量
+
+private:
 	VectorType _vector; // 元素向量
+
+public:
+	friend bool operator==(const BitSet& _left, const BitSet& _right) noexcept
+	{
+		return _left._vector == _right._vector;
+	}
+
+	// C++ 20 != 采用 == 推导
+	//friend bool operator!=(const BitSet& _left, const BitSet& _right) noexcept
+	//{
+	//	return _left._vector != _right._vector;
+	//}
+
+	friend auto operator&(const BitSet& _left, const BitSet& _right)
+	{
+		return BitSet(_left) &= _right;
+	}
+
+	friend auto operator|(const BitSet& _left, const BitSet& _right)
+	{
+		return BitSet(_left) |= _right;
+	}
+
+	friend auto operator^(const BitSet& _left, const BitSet& _right)
+	{
+		return BitSet(_left) ^= _right;
+	}
 
 private:
 	// 位容量
@@ -71,6 +74,7 @@ private:
 		return element <<= _position & _maxPosition;
 	}
 
+private:
 	// 预留空间
 	void reserve(SizeType _capacity)
 	{
@@ -120,32 +124,6 @@ public:
 	auto operator>>(SizeType _position) const
 	{
 		return BitSet(*this) >>= _position;
-	}
-
-	friend bool operator==(const BitSet& _left, const BitSet& _right) noexcept
-	{
-		return _left._vector == _right._vector;
-	}
-
-	// C++ 20 != 采用 == 推导
-	//friend bool operator!=(const BitSet& _left, const BitSet& _right) noexcept
-	//{
-	//	return _left._vector != _right._vector;
-	//}
-
-	friend auto operator&(const BitSet& _left, const BitSet& _right)
-	{
-		return BitSet(_left) &= _right;
-	}
-
-	friend auto operator|(const BitSet& _left, const BitSet& _right)
-	{
-		return BitSet(_left) |= _right;
-	}
-
-	friend auto operator^(const BitSet& _left, const BitSet& _right)
-	{
-		return BitSet(_left) ^= _right;
 	}
 
 	// 获取元素内容
