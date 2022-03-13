@@ -31,14 +31,15 @@ namespace std
 int main()
 {
 	LRUQueue<Key, int> queue(9);
-	for (auto index = 0; index < 10; ++index)
+	auto index = 0;
+	for (; index < 10; ++index)
 		queue.push(index, index);
 
-	if (auto result = queue.find(9))
+	if (auto result = queue.find(--index))
 		std::cout << result.value() << std::endl;
 
 	std::cout << queue.size() << std::endl;
-	queue.pop(9);
+	queue.pop(index);
 	std::cout << queue.size() << std::endl;
 
 	queue.clear();

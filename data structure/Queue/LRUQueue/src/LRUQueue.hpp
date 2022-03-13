@@ -1,21 +1,4 @@
-﻿/*
-* 文件名称：LRUQueue.hpp
-* 语言标准：C++20
-* 
-* 创建日期：2022年02月02日
-* 更新日期：2022年02月26日
-* 
-* 摘要
-* 1.页面置换算法：最近最久未使用(Least Recently Used)。
-* 2.LRU队列按照最近访问顺序对元素排序，提供查找、放入、取出、清空等方法。
-* 
-* 作者：许聪
-* 邮箱：solifree@qq.com
-* 
-* 版本：v1.0.0
-*/
-
-#pragma once
+﻿#pragma once
 
 #include <type_traits>
 #include <utility>

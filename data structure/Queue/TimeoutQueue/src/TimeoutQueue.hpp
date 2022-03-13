@@ -1,21 +1,4 @@
-﻿/*
-* 文件名称：TimeoutQueue.hpp
-* 语言标准：C++20
-* 
-* 创建日期：2022年01月28日
-* 更新日期：2022年02月26日
-* 
-* 摘要
-* 1.超时队列按照时间对元素排序，提供放入、取出、清空等方法。
-*   支持根据索引移除元素，以及指定时间批量取出超时元素。
-* 
-* 作者：许聪
-* 邮箱：solifree@qq.com
-* 
-* 版本：v1.0.0
-*/
-
-#pragma once
+﻿#pragma once
 
 #include <utility>
 #include <optional>
