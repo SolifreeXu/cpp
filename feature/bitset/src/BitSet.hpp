@@ -56,15 +56,15 @@ public:
 
 private:
 	// 位容量
-	static auto capacity(SizeType _position) noexcept
+	static constexpr auto capacity(SizeType _position) noexcept
 	{
 		return _position + 1;
 	}
 
 	// 元素数量
-	static auto size(SizeType _capacity) noexcept
+	static auto size(SizeType _position) noexcept
 	{
-		return (_capacity >> _bitSize) + ((_capacity & _maxPosition) > 0);
+		return (_position >> _bitSize) + 1;
 	}
 
 	// 生成单元素
@@ -76,9 +76,9 @@ private:
 
 private:
 	// 预留空间
-	void reserve(SizeType _capacity)
+	void reserve(SizeType _position)
 	{
-		if (auto size = BitSet::size(_capacity); size > _vector.size())
+		if (auto size = BitSet::size(_position); size > _vector.size())
 			_vector.resize(size, 0);
 	}
 
@@ -97,7 +97,7 @@ public:
 
 	bool operator[](SizeType _position) const noexcept
 	{
-		return size(capacity(_position)) <= _vector.size() \
+		return size(_position) <= _vector.size() \
 			&& (_vector[_position >> _bitSize] & generate(_position)) > 0;
 	}
 
@@ -221,7 +221,6 @@ void BitSet<_ValueType>::traverse(SizeType _begin, SizeType _end, FunctorType _f
 	if (!_functor)
 		return;
 
-	constexpr auto maxPosition = _maxPosition + 1;
 	auto beginPosition = _begin & _maxPosition;
 	auto endPosition = _end & _maxPosition;
 
@@ -229,7 +228,7 @@ void BitSet<_ValueType>::traverse(SizeType _begin, SizeType _end, FunctorType _f
 	ValueType beginMask = _maxElement << beginPosition;
 	ValueType endMask = ~(_maxElement << endPosition);
 
-	auto size = std::min(_vector.size(), BitSet::size(_end));
+	auto size = std::min(_vector.size(), BitSet::size(_end - 1));
 	_begin >>= _bitSize;
 	_end >>= _bitSize;
 
@@ -291,7 +290,7 @@ BitSet<_ValueType>& BitSet<_ValueType>::operator^=(const BitSet& _bitSet)
 template <std::unsigned_integral _ValueType>
 BitSet<_ValueType>& BitSet<_ValueType>::operator<<=(SizeType _position) noexcept
 {
-	constexpr auto maxPosition = _maxPosition + 1;
+	constexpr auto capacity = BitSet::capacity(_maxPosition);
 	auto offset = _position >> _bitSize;
 	_position &= _maxPosition;
 
@@ -311,7 +310,7 @@ BitSet<_ValueType>& BitSet<_ValueType>::operator<<=(SizeType _position) noexcept
 		if (_position > 0 && cursor > 0)
 		{
 			const auto& source = _vector[cursor - 1];
-			target |= (source & highMask) >> maxPosition - _position;
+			target |= (source & highMask) >> capacity - _position;
 		}
 	}
 
@@ -326,7 +325,7 @@ BitSet<_ValueType>& BitSet<_ValueType>::operator<<=(SizeType _position) noexcept
 template <std::unsigned_integral _ValueType>
 BitSet<_ValueType>& BitSet<_ValueType>::operator>>=(SizeType _position) noexcept
 {
-	constexpr auto maxPosition = _maxPosition + 1;
+	constexpr auto capacity = BitSet::capacity(_maxPosition);
 	auto offset = _position >> _bitSize;
 	_position &= _maxPosition;
 
@@ -348,7 +347,7 @@ BitSet<_ValueType>& BitSet<_ValueType>::operator>>=(SizeType _position) noexcept
 		if (_position > 0 && ++cursor < size)
 		{
 			const auto& source = _vector[cursor];
-			target |= (source & lowMask) << maxPosition - _position;
+			target |= (source & lowMask) << capacity - _position;
 		}
 	}
 
@@ -409,7 +408,7 @@ BitSet<_ValueType>& BitSet<_ValueType>::set(SizeType _position, bool _value)
 	if (!_value)
 		return reset(_position);
 
-	reserve(capacity(_position));
+	reserve(_position);
 
 	_vector[_position >> _bitSize] |= generate(_position);
 	return *this;
@@ -425,7 +424,7 @@ BitSet<_ValueType>& BitSet<_ValueType>::set(SizeType _begin, SizeType _end, bool
 	if (_begin >= _end)
 		return *this;
 
-	reserve(_end);
+	reserve(_end - 1);
 
 	traverse(_begin, _end, \
 		[](ValueType& _element, const ValueType& _mask) noexcept { _element |= _mask; });
@@ -436,7 +435,7 @@ BitSet<_ValueType>& BitSet<_ValueType>::set(SizeType _begin, SizeType _end, bool
 template <std::unsigned_integral _ValueType>
 BitSet<_ValueType>& BitSet<_ValueType>::reset(SizeType _position) noexcept
 {
-	if (size(capacity(_position)) <= _vector.size())
+	if (size(_position) <= _vector.size())
 		_vector[_position >> _bitSize] &= ~generate(_position);
 	return *this;
 }
@@ -446,7 +445,7 @@ template <std::unsigned_integral _ValueType>
 BitSet<_ValueType>& BitSet<_ValueType>::reset(SizeType _begin, SizeType _end) noexcept
 {
 	if (_begin >= _end \
-		|| size(capacity(_begin)) > _vector.size())
+		|| size(_begin) > _vector.size())
 		return *this;
 
 	traverse(_begin, _end, \
@@ -458,7 +457,7 @@ BitSet<_ValueType>& BitSet<_ValueType>::reset(SizeType _begin, SizeType _end) no
 template <std::unsigned_integral _ValueType>
 BitSet<_ValueType>& BitSet<_ValueType>::flip(SizeType _position)
 {
-	reserve(capacity(_position));
+	reserve(_position);
 
 	_vector[_position >> _bitSize] ^= generate(_position);
 	return *this;
@@ -471,7 +470,7 @@ BitSet<_ValueType>& BitSet<_ValueType>::flip(SizeType _begin, SizeType _end)
 	if (_begin >= _end)
 		return *this;
 
-	reserve(_end);
+	reserve(_end - 1);
 
 	traverse(_begin, _end, \
 		[](ValueType& _element, const ValueType& _mask) noexcept { _element ^= _mask; });
@@ -494,19 +493,20 @@ BitSet<_ValueType> BitSet<_ValueType>::copy(SizeType _begin, SizeType _end) cons
 	if (_begin >= _end)
 		return BitSet();
 
-	if (size(capacity(_begin)) > _vector.size())
+	if (size(_begin) > _vector.size())
 		return BitSet();
 
-	constexpr auto maxPosition = _maxPosition + 1;
+	constexpr auto capacity = BitSet::capacity(_maxPosition);
 	auto position = _begin & _maxPosition;
 
 	using ValueType = std::remove_const_t<decltype(_maxElement)>;
 	ValueType highMask = _maxElement << position;
 	ValueType lowMask = ~highMask;
 
-	_end = std::min(_end, maxPosition * _vector.size());
-	auto capacity = _end - _begin;
-	auto size = BitSet::size(capacity);
+	auto size = _vector.size();
+	_end = BitSet::size(_end - 1) <= size ? _end : capacity * size;
+	auto difference = _end - _begin - 1;
+	size = BitSet::size(difference);
 	BitSet bitSet(size);
 
 	auto offset = _begin >> _bitSize;
@@ -521,13 +521,14 @@ BitSet<_ValueType> BitSet<_ValueType>::copy(SizeType _begin, SizeType _end) cons
 		if (position > 0 && ++cursor < _vector.size())
 		{
 			const auto& source = _vector[cursor];
-			target |= (source & lowMask) << maxPosition - position;
+			target |= (source & lowMask) << capacity - position;
 		}
 	}
 
-	auto mask = _maxElement;
-	if ((position = capacity & _maxPosition) > 0)
-		mask = ~(mask << position);
+	// 两种算法等价
+	//position = _maxPosition - (difference & _maxPosition);
+	position = (difference & _maxPosition) ^ _maxPosition;
+	auto mask = _maxElement >> position;
 
 	auto& element = bitSet._vector.back();
 	element &= mask;

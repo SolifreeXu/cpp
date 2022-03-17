@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <iostream>
 
+#define STRING(content) #content
+
 template <std::unsigned_integral _ValueType>
 void print(const BitSet<_ValueType>& _bitSet)
 {
@@ -42,32 +44,32 @@ int main()
 
 	BitSetType bitSet(2);
 
-	cout << "set " << low << endl;
+	cout << STRING(bitSet) << " set " << low << endl;
 	bitSet.set(low);
 	print(bitSet);
 	print(bitSet, low, middle);
 	cout << endl;
 
-	cout << "reset " << low << " and flip " << middle << endl;
+	cout << STRING(bitSet) << " reset " << low << " and flip " << middle << endl;
 	bitSet.reset(low);
 	bitSet.flip(middle);
 	print(bitSet);
 	print(bitSet, low, middle);
 	cout << endl;
 
-	cout << "set [" << low << ", " << middle << ')' << endl;
+	cout << STRING(bitSet) << " set [" << low << ", " << middle << ')' << endl;
 	bitSet.set(low, middle);
 	print(bitSet);
 	print(bitSet, low, middle);
 	cout << endl;
 
-	cout << "reset [" << low << ", " << middle << ')' << endl;
+	cout << STRING(bitSet) << " reset [" << low << ", " << middle << ')' << endl;
 	bitSet.reset(low, middle);
 	print(bitSet);
 	print(bitSet, low, middle);
 	cout << endl;
 
-	cout << "flip [" << middle << ", " << high << ')' << endl;
+	cout << STRING(bitSet) << " flip [" << middle << ", " << high << ')' << endl;
 	bitSet.flip(middle, high);
 	print(bitSet);
 	print(bitSet, low, middle);
@@ -76,19 +78,19 @@ int main()
 	auto offset = middle >> 1;
 
 	auto from = middle - offset, to = high - offset;
-	cout << "set [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet) << " set [" << from << ", " << to << ')' << endl;
 	bitSet.set(from, to);
 	print(bitSet);
 	print(bitSet, low, middle);
 	cout << endl;
 
-	cout << "reset [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet) << " reset [" << from << ", " << to << ')' << endl;
 	bitSet.reset(from, to);
 	print(bitSet);
 	print(bitSet, low, middle);
 	cout << endl;
 
-	cout << "flip [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet) << " flip [" << from << ", " << to << ')' << endl;
 	bitSet.flip(from, to);
 	print(bitSet);
 	print(bitSet, low, middle);
@@ -96,27 +98,27 @@ int main()
 
 	from = low;
 	to = middle + offset;
-	cout << "copy [" << from << ", " << to << ')' << endl;
-	auto bitSet3 = bitSet.copy(from, to);
-	print(bitSet3);
-	print(bitSet3, low, middle);
+	auto bitSet2 = bitSet.copy(from, to);
+	cout << STRING(bitSet2) << " from " << STRING(bitSet) << " copy [" << from << ", " << to << ')' << endl;
+	print(bitSet2);
+	print(bitSet2, low, middle);
 	cout << endl;
 
 	from = middle + offset;
 	to = high + offset;
-	cout << "reset [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet) << " reset [" << from << ", " << to << ')' << endl;
 	bitSet.reset(from, to);
 	print(bitSet);
 	print(bitSet, low, middle, high);
 	cout << endl;
 
-	cout << "set [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet) << " set [" << from << ", " << to << ')' << endl;
 	bitSet.set(from, to);
 	print(bitSet);
 	print(bitSet, low, middle, high);
 	cout << endl;
 
-	cout << "flip [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet) << " flip [" << from << ", " << to << ')' << endl;
 	bitSet.flip(from, to);
 	print(bitSet);
 	print(bitSet, low, middle, high);
@@ -124,78 +126,78 @@ int main()
 
 	from = middle;
 	to = high + middle + offset;
-	cout << "copy [" << from << ", " << to << ')' << endl;
-	bitSet3 = bitSet.copy(from, to);
-	print(bitSet3);
-	print(bitSet3, low, middle, high);
+	cout << STRING(bitSet2) << " from " << STRING(bitSet) << " copy [" << from << ", " << to << ')' << endl;
+	bitSet2 = bitSet.copy(from, to);
+	print(bitSet2);
+	print(bitSet2, low, middle, high);
 	cout << endl;
 
-	cout << "flip all" << endl;
+	cout << STRING(bitSet) << " flip all" << endl;
 	bitSet.flip();
 	print(bitSet);
 	print(bitSet, low, middle, high);
 	cout << endl;
 
-	cout << "reset all" << endl;
+	cout << STRING(bitSet) << " reset all" << endl;
 	bitSet.reset();
 	print(bitSet);
 	print(bitSet, low, middle, high);
 	cout << endl;
 
-	cout << "set all" << endl;
+	cout << STRING(bitSet) << " set all" << endl;
 	bitSet.set();
 	print(bitSet);
 	print(bitSet, low, middle, high);
 	cout << endl;
 
-	cout << "operator<< " << offset << endl;
-	auto bitSet1 = bitSet << offset;
-	print(bitSet1);
-	print(bitSet1, low, middle, high);
+	auto bitSetA = bitSet << offset;
+	cout << STRING(bitSetA) << " = " << STRING(bitSet) << " << " << offset << endl;
+	print(bitSetA);
+	print(bitSetA, low, middle, high);
 	cout << endl;
 
-	cout << "operator>> " << offset << endl;
-	auto bitSet2 = bitSet >> offset;
-	print(bitSet2);
-	print(bitSet2, low, middle, high);
+	auto bitSetB = bitSet >> offset;
+	cout << STRING(bitSetB) << " = " << STRING(bitSet) << " >> " << offset << endl;
+	print(bitSetB);
+	print(bitSetB, low, middle, high);
 	cout << endl;
 
 	offset = middle;
 
-	cout << "operator<< " << offset << endl;
-	bitSet1 = bitSet << offset;
-	print(bitSet1);
-	print(bitSet1, low, middle, high);
+	cout << STRING(bitSetA) << " = " << STRING(bitSet) << " << " << offset << endl;
+	bitSetA = bitSet << offset;
+	print(bitSetA);
+	print(bitSetA, low, middle, high);
 	cout << endl;
 
-	cout << "operator>> " << offset << endl;
-	bitSet2 = bitSet >> offset;
+	cout << STRING(bitSetB) << " = " << STRING(bitSet) << " >> " << offset << endl;
+	bitSetB = bitSet >> offset;
+	print(bitSetB);
+	print(bitSetB, low, middle, high);
+	cout << endl;
+
+	cout << STRING(bitSet2) << " = " << STRING(bitSetA) << " & " << STRING(bitSetB) << endl;
+	bitSet2 = bitSetA & bitSetB;
 	print(bitSet2);
 	print(bitSet2, low, middle, high);
 	cout << endl;
 
-	cout << "operator&" << endl;
-	bitSet3 = bitSet1 & bitSet2;
-	print(bitSet3);
-	print(bitSet3, low, middle, high);
+	cout << STRING(bitSet2) << " = " << STRING(bitSetA) << " | " << STRING(bitSetB) << endl;
+	bitSet2 = bitSetA | bitSetB;
+	print(bitSet2);
+	print(bitSet2, low, middle, high);
 	cout << endl;
 
-	cout << "operator|" << endl;
-	bitSet3 = bitSet1 | bitSet2;
-	print(bitSet3);
-	print(bitSet3, low, middle, high);
+	cout << STRING(bitSet2) << " = " << STRING(bitSetA) << " ^ " << STRING(bitSetB) << endl;
+	bitSet2 = bitSetA ^ bitSetB;
+	print(bitSet2);
+	print(bitSet2, low, middle, high);
 	cout << endl;
 
-	cout << "operator^" << endl;
-	bitSet3 = bitSet1 ^ bitSet2;
-	print(bitSet3);
-	print(bitSet3, low, middle, high);
-	cout << endl;
-
-	cout << "operator~" << endl;
-	bitSet3 = ~bitSet;
-	print(bitSet3);
-	print(bitSet3, low, middle, high);
+	cout << STRING(bitSet2) << " = ~" << STRING(bitSet) << endl;
+	bitSet2 = ~bitSet;
+	print(bitSet2);
+	print(bitSet2, low, middle, high);
 	cout << endl;
 	return 0;
 }
