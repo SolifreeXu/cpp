@@ -67,6 +67,9 @@ private:
 		return (_position >> _bitSize) + 1;
 	}
 
+	// 统计有效位
+	static constexpr SizeType count(ValueType _element) noexcept;
+
 	// 生成单元素
 	static auto generate(SizeType _position) noexcept
 	{
@@ -90,7 +93,11 @@ private:
 
 public:
 	BitSet(SizeType _size = 0)
-		: _vector(_size, 0) {}
+		: _vector(_size, 0)
+	{
+		static_assert(count(static_cast<ValueType>(sizeof(ValueType))) == 1, \
+			"The size of ValueType must be a power of 2");
+	}
 
 	BitSet(const ValueType* _data, SizeType _size)
 		: _vector(_data, _data + _size) {}
@@ -203,6 +210,38 @@ public:
 
 template <std::unsigned_integral _ValueType>
 const typename BitSet<_ValueType>::SizeType BitSet<_ValueType>::_bitSize = static_cast<SizeType>(std::log2(CHAR_BIT * sizeof(ValueType)));
+
+// 统计有效位
+template <std::unsigned_integral _ValueType>
+constexpr auto BitSet<_ValueType>::count(ValueType _element) noexcept -> SizeType
+{
+	constexpr unsigned char maxChar = ~static_cast<unsigned char>('\0');
+	const char* const bitTable = \
+		"\0\1\1\2\1\2\2\3\1\2\2\3\2\3\3\4"
+		"\1\2\2\3\2\3\3\4\2\3\3\4\3\4\4\5"
+		"\1\2\2\3\2\3\3\4\2\3\3\4\3\4\4\5"
+		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
+		"\1\2\2\3\2\3\3\4\2\3\3\4\3\4\4\5"
+		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
+		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
+		"\3\4\4\5\4\5\5\6\4\5\5\6\5\6\6\7"
+		"\1\2\2\3\2\3\3\4\2\3\3\4\3\4\4\5"
+		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
+		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
+		"\3\4\4\5\4\5\5\6\4\5\5\6\5\6\6\7"
+		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
+		"\3\4\4\5\4\5\5\6\4\5\5\6\5\6\6\7"
+		"\3\4\4\5\4\5\5\6\4\5\5\6\5\6\6\7"
+		"\4\5\5\6\5\6\6\7\5\6\6\7\6\7\7\x8";
+
+	SizeType counter = 0;
+	for (auto index = sizeof _element; index > 0; --index)
+	{
+		counter += bitTable[_element & maxChar];
+		_element >>= CHAR_BIT;
+	}
+	return counter;
+}
 
 // 判断所有元素值
 template <std::unsigned_integral _ValueType>
@@ -372,32 +411,9 @@ BitSet<_ValueType>& BitSet<_ValueType>::resize(SizeType _size, bool _forced)
 template <std::unsigned_integral _ValueType>
 auto BitSet<_ValueType>::count() const noexcept -> SizeType
 {
-	constexpr unsigned char maxChar = ~static_cast<unsigned char>('\0');
-	const char* const bitTable = \
-		"\0\1\1\2\1\2\2\3\1\2\2\3\2\3\3\4"
-		"\1\2\2\3\2\3\3\4\2\3\3\4\3\4\4\5"
-		"\1\2\2\3\2\3\3\4\2\3\3\4\3\4\4\5"
-		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
-		"\1\2\2\3\2\3\3\4\2\3\3\4\3\4\4\5"
-		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
-		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
-		"\3\4\4\5\4\5\5\6\4\5\5\6\5\6\6\7"
-		"\1\2\2\3\2\3\3\4\2\3\3\4\3\4\4\5"
-		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
-		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
-		"\3\4\4\5\4\5\5\6\4\5\5\6\5\6\6\7"
-		"\2\3\3\4\3\4\4\5\3\4\4\5\4\5\5\6"
-		"\3\4\4\5\4\5\5\6\4\5\5\6\5\6\6\7"
-		"\3\4\4\5\4\5\5\6\4\5\5\6\5\6\6\7"
-		"\4\5\5\6\5\6\6\7\5\6\6\7\6\7\7\x8";
-
 	SizeType counter = 0;
 	for (auto element : _vector)
-		for (auto index = sizeof element; index > 0; --index)
-		{
-			counter += bitTable[element & maxChar];
-			element >>= CHAR_BIT;
-		}
+		counter += count(element);
 	return counter;
 }
 
