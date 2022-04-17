@@ -9,7 +9,7 @@ swap|提供两种无溢出交换方式，分别是CPU异或交换和创建局部
 
 ## 作者
 name：许聪  
-mailbox：2592419242@qq.com  
+mailbox：solifree@qq.com  
 CSDN：https://blog.csdn.net/xucongyoushan  
 gitee：https://gitee.com/solifree  
-github：https://github.com/xucongandxuchong
+github：https://github.com/SolifreeXu
