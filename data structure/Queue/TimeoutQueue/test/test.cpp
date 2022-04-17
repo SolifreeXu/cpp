@@ -2,7 +2,9 @@
 
 #include <type_traits>
 #include <ctime>
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 int main()
 {
@@ -18,6 +20,8 @@ int main()
 		auto time = std::time(nullptr);
 		queue.push(&element, element, time);
 	}
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	std::cout << queue.size() << std::endl;
 	queue.pop(&array[0]);

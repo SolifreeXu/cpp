@@ -124,12 +124,8 @@ auto TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(const IndexType& _in
 template <typename _IndexType, typename _ElementType, typename _TimeType>
 bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(TimeType _time, VectorType& _vector)
 {
-	auto iterator = _queue.lower_bound(_time);
-	if (iterator == _queue.end())
-		return false;
-
 	bool result = false;
-	for (auto end = _queue.upper_bound(_time); \
+	for (auto iterator = _queue.begin(), end = _queue.upper_bound(_time); \
 		iterator != end; iterator = _queue.erase(iterator))
 	{
 		const auto& index = iterator->second;
