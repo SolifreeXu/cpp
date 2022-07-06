@@ -1,6 +1,7 @@
 ﻿#include "BitSet.hpp"
 
 #include <concepts>
+#include <cstdlib>
 #include <cstdint>
 #include <iostream>
 
@@ -9,8 +10,7 @@
 template <std::unsigned_integral _ValueType>
 void print(const BitSet<_ValueType>& _bitSet)
 {
-	using std::cout;
-	using std::endl;
+	using std::cout, std::endl;
 
 	cout << std::boolalpha;
 	cout << "size: " << _bitSet.size() << endl;
@@ -21,13 +21,16 @@ void print(const BitSet<_ValueType>& _bitSet)
 }
 
 template <std::unsigned_integral _ValueType>
-void print(const BitSet<_ValueType>& _bitSet, typename BitSet<_ValueType>::SizeType _position)
+void print(const BitSet<_ValueType>& _bitSet, \
+	typename BitSet<_ValueType>::SizeType _position)
 {
-	std::cout << std::boolalpha << _position << ": " << _bitSet[_position] << std::endl;
+	std::cout << std::boolalpha << _position << ": " \
+		<< _bitSet[_position] << std::endl;
 }
 
 template <std::unsigned_integral _ValueType, typename... _Positions>
-void print(const BitSet<_ValueType>& _bitSet, typename BitSet<_ValueType>::SizeType _position, _Positions... _positions)
+void print(const BitSet<_ValueType>& _bitSet, \
+	typename BitSet<_ValueType>::SizeType _position, _Positions... _positions)
 {
 	print(_bitSet, _position);
 	print(_bitSet, _positions...);
@@ -35,14 +38,12 @@ void print(const BitSet<_ValueType>& _bitSet, typename BitSet<_ValueType>::SizeT
 
 int main()
 {
-	using std::cout;
-	using std::endl;
-
-	using BitSetType = BitSet<uint64_t>;
+	using BitSetType = BitSet<std::uint64_t>;
 
 	constexpr BitSetType::SizeType low = 0, middle = 64, high = 128;
-
 	BitSetType bitSet(2);
+
+	using std::cout, std::endl;
 
 	cout << STRING(bitSet) << " set " << low << endl;
 	bitSet.set(low);
@@ -50,7 +51,8 @@ int main()
 	print(bitSet, low, middle);
 	cout << endl;
 
-	cout << STRING(bitSet) << " reset " << low << " and flip " << middle << endl;
+	cout << STRING(bitSet) << " reset " << low \
+		<< " and flip " << middle << endl;
 	bitSet.reset(low);
 	bitSet.flip(middle);
 	print(bitSet);
@@ -99,7 +101,8 @@ int main()
 	from = low;
 	to = middle + offset;
 	auto bitSet2 = bitSet.copy(from, to);
-	cout << STRING(bitSet2) << " from " << STRING(bitSet) << " copy [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet2) << " from " << STRING(bitSet) \
+		<< " copy [" << from << ", " << to << ')' << endl;
 	print(bitSet2);
 	print(bitSet2, low, middle);
 	cout << endl;
@@ -126,7 +129,8 @@ int main()
 
 	from = middle;
 	to = high + middle + offset;
-	cout << STRING(bitSet2) << " from " << STRING(bitSet) << " copy [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet2) << " from " << STRING(bitSet) \
+		<< " copy [" << from << ", " << to << ')' << endl;
 	bitSet2 = bitSet.copy(from, to);
 	print(bitSet2);
 	print(bitSet2, low, middle, high);
@@ -151,44 +155,51 @@ int main()
 	cout << endl;
 
 	auto bitSetA = bitSet << offset;
-	cout << STRING(bitSetA) << " = " << STRING(bitSet) << " << " << offset << endl;
+	cout << STRING(bitSetA) << " = " \
+		<< STRING(bitSet) << " << " << offset << endl;
 	print(bitSetA);
 	print(bitSetA, low, middle, high);
 	cout << endl;
 
 	auto bitSetB = bitSet >> offset;
-	cout << STRING(bitSetB) << " = " << STRING(bitSet) << " >> " << offset << endl;
+	cout << STRING(bitSetB) << " = " \
+		<< STRING(bitSet) << " >> " << offset << endl;
 	print(bitSetB);
 	print(bitSetB, low, middle, high);
 	cout << endl;
 
 	offset = middle;
 
-	cout << STRING(bitSetA) << " = " << STRING(bitSet) << " << " << offset << endl;
+	cout << STRING(bitSetA) << " = " \
+		<< STRING(bitSet) << " << " << offset << endl;
 	bitSetA = bitSet << offset;
 	print(bitSetA);
 	print(bitSetA, low, middle, high);
 	cout << endl;
 
-	cout << STRING(bitSetB) << " = " << STRING(bitSet) << " >> " << offset << endl;
+	cout << STRING(bitSetB) << " = " \
+		<< STRING(bitSet) << " >> " << offset << endl;
 	bitSetB = bitSet >> offset;
 	print(bitSetB);
 	print(bitSetB, low, middle, high);
 	cout << endl;
 
-	cout << STRING(bitSet2) << " = " << STRING(bitSetA) << " & " << STRING(bitSetB) << endl;
+	cout << STRING(bitSet2) << " = " \
+		<< STRING(bitSetA) << " & " << STRING(bitSetB) << endl;
 	bitSet2 = bitSetA & bitSetB;
 	print(bitSet2);
 	print(bitSet2, low, middle, high);
 	cout << endl;
 
-	cout << STRING(bitSet2) << " = " << STRING(bitSetA) << " | " << STRING(bitSetB) << endl;
+	cout << STRING(bitSet2) << " = " \
+		<< STRING(bitSetA) << " | " << STRING(bitSetB) << endl;
 	bitSet2 = bitSetA | bitSetB;
 	print(bitSet2);
 	print(bitSet2, low, middle, high);
 	cout << endl;
 
-	cout << STRING(bitSet2) << " = " << STRING(bitSetA) << " ^ " << STRING(bitSetB) << endl;
+	cout << STRING(bitSet2) << " = " \
+		<< STRING(bitSetA) << " ^ " << STRING(bitSetB) << endl;
 	bitSet2 = bitSetA ^ bitSetB;
 	print(bitSet2);
 	print(bitSet2, low, middle, high);
@@ -199,5 +210,5 @@ int main()
 	print(bitSet2);
 	print(bitSet2, low, middle, high);
 	cout << endl;
-	return 0;
+	return EXIT_SUCCESS;
 }
