@@ -51,8 +51,8 @@ private:
 	 */
 	void copy(const Sorter& _another)
 	{
-		std::transform(_another._mapping.cbegin(), _another._mapping.cend(),
-			std::inserter(this->_mapping, this->_mapping.begin()),
+		std::transform(_another._mapping.cbegin(), _another._mapping.cend(), \
+			std::inserter(this->_mapping, this->_mapping.begin()), \
 			[this](const PairType& _pair)
 			{
 				NodeType node(_pair.first, *_pair.second._record);
@@ -62,6 +62,8 @@ private:
 	}
 
 public:
+	Sorter() = default;
+
 	Sorter(const Sorter& _another)
 		: _mapping(_another._mapping.bucket_count())
 	{
