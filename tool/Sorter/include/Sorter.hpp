@@ -70,12 +70,17 @@ public:
 		copy(_another);
 	}
 
+	Sorter(Sorter&&) = default;
+
 	Sorter& operator=(const Sorter& _another)
 	{
 		clear();
 		this->_mapping.rehash(_another._mapping.bucket_count());
 		copy(_another);
+		return *this;
 	}
+
+	Sorter& operator=(Sorter&&) = default;
 
 	// 获取记录数量
 	auto size() const noexcept
