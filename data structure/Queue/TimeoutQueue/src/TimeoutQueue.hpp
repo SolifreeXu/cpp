@@ -146,7 +146,7 @@ bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(VectorType& _vector)
 	if (_queue.empty()) return false;
 
 	_vector.reserve(_vector.size() + _queue.size());
-	for (const auto& [time, index] : _queue)
+	for (const auto& [_, index] : _queue)
 		if (auto iterator = _pool.find(index); iterator != _pool.end())
 			_vector.emplace_back(iterator->first, iterator->second.first);
 
