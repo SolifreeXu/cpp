@@ -12,6 +12,7 @@ public:
 	using IndexType = _IndexType;
 	using ElementType = _ElementType;
 	using TimeType = _TimeType;
+
 	using PairType = std::pair<IndexType, ElementType>;
 	using VectorType = std::vector<PairType>;
 	using SizeType = VectorType::size_type;
@@ -41,8 +42,10 @@ public:
 	auto size() const noexcept { return _queue.size(); }
 	bool empty() const noexcept { return _queue.empty(); }
 
-	bool push(const IndexType& _index, const ElementType& _element, TimeType _time);
-	bool push(const IndexType& _index, ElementType&& _element, TimeType _time);
+	bool push(const IndexType& _index, \
+		const ElementType& _element, TimeType _time);
+	bool push(const IndexType& _index, \
+		ElementType&& _element, TimeType _time);
 
 	bool pop(const IndexType& _index, ElementType& _element);
 	std::optional<ElementType> pop(const IndexType& _index);
@@ -57,8 +60,7 @@ template <typename _IndexType, typename _ElementType, typename _TimeType>
 void TimeoutQueue<_IndexType, _ElementType, _TimeType>::erase(TimeType _time, const IndexType& _index)
 {
 	auto iterator = _queue.lower_bound(_time);
-	if (iterator == _queue.end())
-		return;
+	if (iterator == _queue.end()) return;
 
 	auto end = _queue.upper_bound(_time);
 	for (; iterator != end; ++iterator)
@@ -70,10 +72,10 @@ void TimeoutQueue<_IndexType, _ElementType, _TimeType>::erase(TimeType _time, co
 }
 
 template <typename _IndexType, typename _ElementType, typename _TimeType>
-bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::push(const IndexType& _index, const ElementType& _element, TimeType _time)
+bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::push(const IndexType& _index, \
+	const ElementType& _element, TimeType _time)
 {
-	if (_capacity > 0 && _queue.size() >= _capacity)
-		return false;
+	if (_capacity > 0 && _queue.size() >= _capacity) return false;
 
 	_queue.emplace(_time, _index);
 	_pool.emplace(_index, std::make_pair(_element, _time));
@@ -81,10 +83,10 @@ bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::push(const IndexType& _i
 }
 
 template <typename _IndexType, typename _ElementType, typename _TimeType>
-bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::push(const IndexType& _index, ElementType&& _element, TimeType _time)
+bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::push(const IndexType& _index, \
+	ElementType&& _element, TimeType _time)
 {
-	if (_capacity > 0 && _queue.size() >= _capacity)
-		return false;
+	if (_capacity > 0 && _queue.size() >= _capacity) return false;
 
 	_queue.emplace(_time, _index);
 	_pool.emplace(_index, std::make_pair(std::forward<ElementType>(_element), _time));
@@ -95,10 +97,9 @@ template <typename _IndexType, typename _ElementType, typename _TimeType>
 bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(const IndexType& _index, ElementType& _element)
 {
 	auto iterator = _pool.find(_index);
-	if (iterator == _pool.end())
-		return false;
+	if (iterator == _pool.end()) return false;
 
-	auto& [element, time] = iterator->second;
+	const auto& [element, time] = iterator->second;
 	_element = element;
 
 	erase(time, _index);
@@ -107,13 +108,13 @@ bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(const IndexType& _in
 }
 
 template <typename _IndexType, typename _ElementType, typename _TimeType>
-auto TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(const IndexType& _index) -> std::optional<ElementType>
+auto TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(const IndexType& _index) \
+-> std::optional<ElementType>
 {
 	auto iterator = _pool.find(_index);
-	if (iterator == _pool.end())
-		return std::nullopt;
+	if (iterator == _pool.end()) return std::nullopt;
 
-	auto& [element, time] = iterator->second;
+	const auto& [element, time] = iterator->second;
 	std::optional result = element;
 
 	erase(time, _index);
@@ -142,8 +143,7 @@ bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(TimeType _time, Vect
 template <typename _IndexType, typename _ElementType, typename _TimeType>
 bool TimeoutQueue<_IndexType, _ElementType, _TimeType>::pop(VectorType& _vector)
 {
-	if (_queue.empty())
-		return false;
+	if (_queue.empty()) return false;
 
 	_vector.reserve(_vector.size() + _queue.size());
 	for (const auto& [time, index] : _queue)
