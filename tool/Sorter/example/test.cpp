@@ -5,9 +5,16 @@
 
 struct Record
 {
-	std::uint_least64_t _id;
-	std::uint_least64_t _integral;
-	std::uint_least64_t _timestamp;
+	using SizeType = std::uint_least64_t;
+
+	SizeType _id;
+	SizeType _integral;
+	SizeType _timestamp;
+
+	explicit operator SizeType() const noexcept
+	{
+		return _id;
+	}
 
 	bool operator<(const Record& _another) const noexcept
 	{
@@ -27,20 +34,21 @@ private:
 	}
 };
 
-using SorterType = Sorter<std::uint_least64_t, Record>;
+using SizeType = Record::SizeType;
+using SorterType = Sorter<SizeType, Record>;
 
-static constexpr std::uint_least64_t SIZE = 100 + 1;
+static constexpr SizeType SIZE = 100 + 1;
 
 static void load(SorterType& _sorter)
 {
-	for (std::uint_least64_t index = 1; index < SIZE; ++index)
-		_sorter.update(index, { index, SIZE - index, index });
+	for (SizeType index = 1; index < SIZE; ++index)
+		_sorter.update({ index, SIZE - index, index });
 }
 
 static void update(SorterType& _sorter)
 {
-	_sorter.update(10, { 10, 100, SIZE });
-	_sorter.update(100, { 100, 100, SIZE });
+	_sorter.update({ 10, 100, SIZE });
+	_sorter.update({ 100, 100, SIZE });
 }
 
 int main()
@@ -62,9 +70,10 @@ int main()
 
 	std::cout << "Sorter Size: " << sorter.size() << std::endl;
 	std::cout << "Top 10" << std::endl;
-	if (auto recordList = sorter.get(0, 10))
-		for (const auto& record : *recordList)
-			std::cout << record << std::endl;
+	SorterType::RecordList recordList(0);
+	sorter.get(recordList, 0, 10);
+	for (const auto& record : recordList)
+		std::cout << record << std::endl;
 
 	std::cout << "\nRemove 9" << std::endl;
 	sorter.remove(9);
