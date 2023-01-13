@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <iostream>
 
+#define SHARED
+
 struct Record
 {
 	using SizeType = std::uint_least64_t;
@@ -11,19 +13,9 @@ struct Record
 	SizeType _integral;
 	SizeType _timestamp;
 
-	explicit operator SizeType() const noexcept
-	{
-		return _id;
-	}
+	explicit operator SizeType() const noexcept { return _id; }
 
-	bool operator<(const Record& _another) const noexcept
-	{
-		return this->_integral < _another._integral \
-			|| this->_integral == _another._integral \
-			&& (this->_timestamp > _another._timestamp \
-				|| this->_timestamp == _another._timestamp \
-				&& this->_id > _another._id);
-	}
+	bool operator<(const Record& _another) const noexcept;
 
 private:
 	friend std::ostream& operator<<(std::ostream& _ostream, \
@@ -34,8 +26,23 @@ private:
 	}
 };
 
+bool Record::operator<(const Record& _another) const noexcept
+{
+	return this->_integral < _another._integral \
+		|| this->_integral == _another._integral \
+		&& (this->_timestamp > _another._timestamp \
+			|| this->_timestamp == _another._timestamp \
+			&& this->_id > _another._id);
+}
+
 using SizeType = Record::SizeType;
+
+#ifndef SHARED
 using SorterType = Sorter<SizeType, Record>;
+
+#else // SHARED
+using SorterType = SharedSorter<SizeType, Record>;
+#endif // !SHARED
 
 static constexpr SizeType SIZE = 100 + 1;
 
