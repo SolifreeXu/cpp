@@ -17,7 +17,7 @@ int main()
 	using QueueType = TimeoutQueue<const ElementType*, FunctorType, std::time_t>;
 
 	QueueType queue;
-	for (const auto& element : array)
+	for (auto& element : array)
 	{
 		auto address = &element;
 		auto time = std::time(nullptr);
