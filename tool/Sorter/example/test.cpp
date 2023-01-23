@@ -1,5 +1,6 @@
 ﻿#include "Sorter.hpp"
 
+#include <cstdlib>
 #include <cstdint>
 #include <iostream>
 
@@ -92,5 +93,5 @@ int main()
 
 	std::cout << "\nImage Size: " << image.size() << std::endl;
 	std::cout << "The 9 ranks " << image.rank(9) << "th" << std::endl;
-	return 0;
+	return EXIT_SUCCESS;
 }

@@ -8,18 +8,21 @@
 #include <iterator>
 #include <algorithm>
 
-template <typename _SizeType>
+template <typename _IDType>
 class SortedRecord
 {
 public:
-	using SizeType = _SizeType;
+	using IDType = _IDType;
 
 public:
 	virtual ~SortedRecord() noexcept {}
 
-	virtual explicit operator SizeType() const = 0;
+	virtual explicit operator IDType() const = 0;
 
-	bool operator<(const SortedRecord& _another) const noexcept {}
+	bool operator<(const SortedRecord& _another) const noexcept
+	{
+		return false;
+	}
 };
 
 template <typename _IDType, typename _RecordType>
