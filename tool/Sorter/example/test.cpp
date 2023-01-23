@@ -30,10 +30,10 @@ private:
 bool Record::operator<(const Record& _another) const noexcept
 {
 	return this->_integral < _another._integral \
-		|| this->_integral == _another._integral \
-		&& (this->_timestamp > _another._timestamp \
-			|| this->_timestamp == _another._timestamp \
-			&& this->_id > _another._id);
+		or this->_integral == _another._integral \
+		and (this->_timestamp > _another._timestamp \
+			or this->_timestamp == _another._timestamp \
+			and this->_id > _another._id);
 }
 
 using SizeType = Record::SizeType;
