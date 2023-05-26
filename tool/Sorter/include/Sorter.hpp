@@ -26,7 +26,7 @@ public:
 };
 
 template <typename _IDType, typename _RecordType>
-class Sorter
+class Sorter final
 {
 public:
 	using IDType = _IDType;
@@ -125,10 +125,9 @@ public:
 };
 
 template <typename _IDType, typename _RecordType>
-class SharedSorter
+class SharedSorter final
 {
 	struct Node;
-	using NodeType = Node;
 
 public:
 	using IDType = _IDType;
@@ -138,6 +137,7 @@ public:
 	using SizeType = RecordList::size_type;
 
 private:
+	using NodeType = Node;
 	using IDMapper = std::unordered_map<IDType, NodeType>;
 	using PairType = IDMapper::value_type;
 	using NodeSet = std::set<NodeType>;
@@ -316,14 +316,14 @@ void Sorter<_IDType, _RecordType>::update(const RecordType& _record)
 	if (auto iterator = _idMapper.find(id); \
 		iterator == _idMapper.end())
 	{
-		_idMapper[id] = _record;
+		_idMapper.emplace(id, _record);
 		_recordSet.insert(_record);
 	}
 	else
 	{
-		_recordSet.erase(iterator->second);
-		iterator->second = _record;
-		_recordSet.insert(_record);
+		auto node = _recordSet.extract(iterator->second);
+		node.value() = iterator->second = _record;
+		_recordSet.insert(std::move(node));
 	}
 }
 
@@ -441,15 +441,14 @@ void SharedSorter<_IDType, _RecordType>::update(const RecordType& _record)
 	if (auto iterator = _idMapper.find(id); iterator == _idMapper.end())
 	{
 		NodeType node(_record);
-		_idMapper[id] = node;
+		_idMapper.emplace(id, node);
 		_nodeSet.insert(std::move(node));
 	}
 	else
 	{
-		NodeType& node = iterator->second;
-		_nodeSet.erase(node);
-		*node._record = _record;
-		_nodeSet.insert(node);
+		auto node = _nodeSet.extract(iterator->second);
+		*node.value()._record = *iterator->second._record = _record;
+		_nodeSet.insert(std::move(node));
 	}
 }
 

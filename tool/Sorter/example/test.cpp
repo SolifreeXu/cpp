@@ -40,7 +40,6 @@ using SizeType = Record::SizeType;
 
 #ifndef SHARED
 using SorterType = Sorter<SizeType, Record>;
-
 #else // SHARED
 using SorterType = SharedSorter<SizeType, Record>;
 #endif // !SHARED
