@@ -8,8 +8,8 @@ struct Key
 {
 	int _integer;
 
-	Key(decltype(_integer) _integer) noexcept
-		: _integer(_integer) {}
+	Key(decltype(_integer) _integer) noexcept : \
+		_integer(_integer) {}
 
 	friend bool operator==(const Key& _left, \
 		const Key& _right) noexcept

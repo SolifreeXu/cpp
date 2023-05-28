@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 template <typename _KeyType, typename _ValueType>
-class LRUQueue
+class LRUQueue final
 {
 public:
 	using KeyType = _KeyType;
@@ -21,13 +21,14 @@ public:
 
 private:
 	using QueueType = std::map<SizeType, KeyType>;
-	using PoolType = std::unordered_map<KeyType, std::pair<ValueType, SizeType>>;
+	using TableType = std::unordered_map<KeyType, \
+		std::pair<ValueType, SizeType>>;
 
 private:
 	SizeType _capacity;
 	SizeType _counter; // [0, SIZE_MAX)
 	QueueType _queue; // count -> key
-	PoolType _pool; // key -> pair(value, count)
+	TableType _table; // key -> pair(value, count)
 
 private:
 	void insert(const KeyType& _key, const ValueType& _value);
@@ -39,8 +40,8 @@ private:
 
 public:
 	// 若_capacity小于等于零，则无限制，否则其为上限值
-	LRUQueue(decltype(_capacity) _capacity = 0)
-		: _capacity(_capacity), _counter(0) {}
+	LRUQueue(decltype(_capacity) _capacity = 0) : \
+		_capacity(_capacity), _counter(0) {}
 
 	auto capacity() const noexcept { return _capacity; }
 	void reserve(decltype(_capacity) _capacity) noexcept
@@ -48,12 +49,12 @@ public:
 		this->_capacity = _capacity;
 	}
 
-	auto size() const noexcept { return _queue.size(); }
 	bool empty() const noexcept { return _queue.empty(); }
+	auto size() const noexcept { return _queue.size(); }
 
-	bool contain(const KeyType& _key) const
+	bool exist(const KeyType& _key) const
 	{
-		return _pool.contains(_key);
+		return _table.contains(_key);
 	}
 
 	bool find(const KeyType& _key, ValueType& _value);
@@ -71,19 +72,22 @@ public:
 };
 
 template <typename _KeyType, typename _ValueType>
-void LRUQueue<_KeyType, _ValueType>::insert(const KeyType& _key, const ValueType& _value)
+void LRUQueue<_KeyType, _ValueType>::insert(const KeyType& _key, \
+	const ValueType& _value)
 {
 	auto count = _counter++;
 	_queue.emplace(count, _key);
-	_pool.emplace(_key, std::make_pair(_value, count));
+	_table.emplace(_key, std::make_pair(_value, count));
 }
 
 template <typename _KeyType, typename _ValueType>
-void LRUQueue<_KeyType, _ValueType>::insert(const KeyType& _key, ValueType&& _value)
+void LRUQueue<_KeyType, _ValueType>::insert(const KeyType& _key, \
+	ValueType&& _value)
 {
 	auto count = _counter++;
 	_queue.emplace(count, _key);
-	_pool.emplace(_key, std::make_pair(std::forward<ValueType>(_value), count));
+	_table.emplace(_key, \
+		std::make_pair(std::forward<ValueType>(_value), count));
 }
 
 template <typename _KeyType, typename _ValueType>
@@ -91,10 +95,10 @@ void LRUQueue<_KeyType, _ValueType>::erase()
 {
 	if (_capacity <= 0) return;
 
-	while (_queue.size() >= _capacity)
+	while (size() >= _capacity)
 	{
 		auto iterator = _queue.cbegin();
-		_pool.erase(iterator->second);
+		_table.erase(iterator->second);
 		_queue.erase(iterator);
 	}
 }
@@ -110,24 +114,25 @@ void LRUQueue<_KeyType, _ValueType>::adjust()
 		using SizeType = std::remove_const_t<std::remove_reference_t<decltype(count)>>;
 		const_cast<SizeType&>(count) = _counter++;
 
-		if (auto iterator = _pool.find(key); \
-			iterator != _pool.end())
+		if (auto iterator = _table.find(key); \
+			iterator != _table.end())
 			iterator->second.second = count;
 	}
 }
 
 template <typename _KeyType, typename _ValueType>
-bool LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key, ValueType& _value)
+bool LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key, \
+	ValueType& _value)
 {
-	auto iterator = _pool.find(_key);
-	if (iterator == _pool.end()) return false;
+	auto iterator = _table.find(_key);
+	if (iterator == _table.end()) return false;
 
 	auto& [value, count] = iterator->second;
 	_value = value;
-	_queue.erase(count);
 
-	count = _counter++;
-	_queue.emplace(count, _key);
+	auto node = _queue.extract(count);
+	node.key() = count = _counter++;
+	_queue.insert(std::move(node));
 
 	adjust();
 	return true;
@@ -137,21 +142,21 @@ template <typename _KeyType, typename _ValueType>
 auto LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key) \
 -> std::optional<ValueType>
 {
-	auto iterator = _pool.find(_key);
-	if (iterator == _pool.end()) return std::nullopt;
+	auto iterator = _table.find(_key);
+	if (iterator == _table.end()) return std::nullopt;
 
 	auto& [value, count] = iterator->second;
-	_queue.erase(count);
-
-	count = _counter++;
-	_queue.emplace(count, _key);
+	auto node = _queue.extract(count);
+	node.key() = count = _counter++;
+	_queue.insert(std::move(node));
 
 	adjust();
 	return value;
 }
 
 template <typename _KeyType, typename _ValueType>
-void LRUQueue<_KeyType, _ValueType>::push(const KeyType& _key, const ValueType& _value)
+void LRUQueue<_KeyType, _ValueType>::push(const KeyType& _key, \
+	const ValueType& _value)
 {
 	erase();
 	insert(_key, _value);
@@ -159,7 +164,8 @@ void LRUQueue<_KeyType, _ValueType>::push(const KeyType& _key, const ValueType& 
 }
 
 template <typename _KeyType, typename _ValueType>
-void LRUQueue<_KeyType, _ValueType>::push(const KeyType& _key, ValueType&& _value)
+void LRUQueue<_KeyType, _ValueType>::push(const KeyType& _key, \
+	ValueType&& _value)
 {
 	erase();
 	insert(_key, std::forward<ValueType>(_value));
@@ -167,16 +173,17 @@ void LRUQueue<_KeyType, _ValueType>::push(const KeyType& _key, ValueType&& _valu
 }
 
 template <typename _KeyType, typename _ValueType>
-bool LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key, ValueType& _value)
+bool LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key, \
+	ValueType& _value)
 {
-	auto iterator = _pool.find(_key);
-	if (iterator == _pool.end()) return false;
+	auto iterator = _table.find(_key);
+	if (iterator == _table.end()) return false;
 
-	const auto& [value, count] = iterator->second;
-	_value = value;
+	auto& [value, count] = iterator->second;
+	_value = std::move(value);
 
 	_queue.erase(count);
-	_pool.erase(iterator);
+	_table.erase(iterator);
 	return true;
 }
 
@@ -184,28 +191,28 @@ template <typename _KeyType, typename _ValueType>
 auto LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key) \
 -> std::optional<ValueType>
 {
-	auto iterator = _pool.find(_key);
-	if (iterator == _pool.end()) return std::nullopt;
+	auto iterator = _table.find(_key);
+	if (iterator == _table.end()) return std::nullopt;
 
-	const auto& [value, count] = iterator->second;
-	std::optional result = value;
+	auto& [value, count] = iterator->second;
+	std::optional result = std::move(value);
 
 	_queue.erase(count);
-	_pool.erase(iterator);
+	_table.erase(iterator);
 	return result;
 }
 
 template <typename _KeyType, typename _ValueType>
 bool LRUQueue<_KeyType, _ValueType>::pop(VectorType& _vector)
 {
-	if (_queue.empty()) return false;
+	if (empty()) return false;
 
-	_vector.reserve(_vector.size() + _queue.size());
+	_vector.reserve(_vector.size() + size());
 	for (const auto& [count, key] : _queue)
-		if (auto iterator = _pool.find(key); \
-			iterator != _pool.end())
+		if (auto iterator = _table.find(key); \
+			iterator != _table.end())
 			_vector.emplace_back(iterator->first, \
-				iterator->second.first);
+				std::move(iterator->second.first));
 
 	clear();
 	return true;
@@ -214,7 +221,7 @@ bool LRUQueue<_KeyType, _ValueType>::pop(VectorType& _vector)
 template <typename _KeyType, typename _ValueType>
 void LRUQueue<_KeyType, _ValueType>::clear() noexcept
 {
-	_pool.clear();
+	_table.clear();
 	_queue.clear();
 	_counter = 0;
 }
