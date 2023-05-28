@@ -6,7 +6,7 @@
 #include <map>
 
 template <typename _TimeType, typename _IndexType, typename _ElementType>
-class TimeoutQueue
+class TimeoutQueue final
 {
 public:
 	using TimeType = _TimeType;
