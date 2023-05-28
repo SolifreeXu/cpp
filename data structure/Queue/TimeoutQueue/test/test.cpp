@@ -14,15 +14,15 @@ int main()
 
 	using ElementType = std::remove_const_t<std::remove_reference_t<decltype(array[0])>>;
 	using FunctorType = std::function<const ElementType* ()>;
-	using QueueType = TimeoutQueue<const ElementType*, FunctorType, std::time_t>;
+	using QueueType = TimeoutQueue<std::time_t, const ElementType*, FunctorType>;
 
 	QueueType queue;
 	for (auto& element : array)
 	{
 		auto address = &element;
 		auto time = std::time(nullptr);
-		queue.push(address, \
-			[address] { return address; }, time);
+		queue.push(time, address, \
+			[address] { return address; });
 	}
 	std::cout << queue.size() << std::endl;
 
