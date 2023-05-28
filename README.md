@@ -31,8 +31,7 @@ double dispatching
 Fraction  
 Complex  
 Time  
-Date  
-Timer
+Date
 
 ## 作者
 name：许聪  
