@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <cstdlib>
+#include <climits>
 #include <cstdint>
 #include <iostream>
 
@@ -28,9 +29,11 @@ void print(const BitSet<_ValueType>& _bitSet, \
 		<< _bitSet[_position] << std::endl;
 }
 
-template <std::unsigned_integral _ValueType, typename... _Positions>
+template <std::unsigned_integral _ValueType, \
+	typename... _Positions>
 void print(const BitSet<_ValueType>& _bitSet, \
-	typename BitSet<_ValueType>::SizeType _position, _Positions... _positions)
+	typename BitSet<_ValueType>::SizeType _position, \
+	_Positions... _positions)
 {
 	print(_bitSet, _position);
 	print(_bitSet, _positions...);
@@ -38,177 +41,201 @@ void print(const BitSet<_ValueType>& _bitSet, \
 
 int main()
 {
-	using BitSetType = BitSet<std::uint64_t>;
-
-	constexpr BitSetType::SizeType low = 0, middle = 64, high = 128;
-	BitSetType bitSet(2);
-
+	using BitSet = BitSet<std::uint64_t>;
 	using std::cout, std::endl;
 
-	cout << STRING(bitSet) << " set " << low << endl;
-	bitSet.set(low);
+	constexpr auto SIZE = sizeof(BitSet::ValueType) * CHAR_BIT;
+	decltype(SIZE) LOW = 0;
+	decltype(SIZE) MIDDLE = LOW + SIZE;
+	decltype(SIZE) HIGH = MIDDLE + SIZE;
+
+	BitSet bitSet(2);
+
+	cout << STRING(bitSet) << " set " << LOW << endl;
+	bitSet.set(LOW);
 	print(bitSet);
-	print(bitSet, low, middle);
+	print(bitSet, LOW, MIDDLE);
 	cout << endl;
 
-	cout << STRING(bitSet) << " reset " << low \
-		<< " and flip " << middle << endl;
-	bitSet.reset(low);
-	bitSet.flip(middle);
+	cout << STRING(bitSet) << " reset " << LOW \
+		<< " and flip " << MIDDLE << endl;
+	bitSet.reset(LOW);
+	bitSet.flip(MIDDLE);
 	print(bitSet);
-	print(bitSet, low, middle);
+	print(bitSet, LOW, MIDDLE);
 	cout << endl;
 
-	cout << STRING(bitSet) << " set [" << low << ", " << middle << ')' << endl;
-	bitSet.set(low, middle);
-	print(bitSet);
-	print(bitSet, low, middle);
-	cout << endl;
+	auto from = LOW, to = MIDDLE;
 
-	cout << STRING(bitSet) << " reset [" << low << ", " << middle << ')' << endl;
-	bitSet.reset(low, middle);
-	print(bitSet);
-	print(bitSet, low, middle);
-	cout << endl;
-
-	cout << STRING(bitSet) << " flip [" << middle << ", " << high << ')' << endl;
-	bitSet.flip(middle, high);
-	print(bitSet);
-	print(bitSet, low, middle);
-	cout << endl;
-
-	auto offset = middle >> 1;
-
-	auto from = middle - offset, to = high - offset;
-	cout << STRING(bitSet) << " set [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet) \
+		<< " set [" << from << ", " << to << ')' << endl;
 	bitSet.set(from, to);
 	print(bitSet);
-	print(bitSet, low, middle);
+	print(bitSet, LOW, MIDDLE);
 	cout << endl;
 
-	cout << STRING(bitSet) << " reset [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet) \
+		<< " reset [" << from << ", " << to << ')' << endl;
 	bitSet.reset(from, to);
 	print(bitSet);
-	print(bitSet, low, middle);
+	print(bitSet, LOW, MIDDLE);
 	cout << endl;
 
-	cout << STRING(bitSet) << " flip [" << from << ", " << to << ')' << endl;
+	from = MIDDLE;
+	to = HIGH;
+
+	cout << STRING(bitSet) \
+		<< " flip [" << from << ", " << to << ')' << endl;
 	bitSet.flip(from, to);
 	print(bitSet);
-	print(bitSet, low, middle);
+	print(bitSet, LOW, MIDDLE);
 	cout << endl;
 
-	from = low;
-	to = middle + offset;
+	auto offset = MIDDLE >> 1;
+	from = MIDDLE - offset;
+	to = HIGH - offset;
+
+	cout << STRING(bitSet) \
+		<< " set [" << from << ", " << to << ')' << endl;
+	bitSet.set(from, to);
+	print(bitSet);
+	print(bitSet, LOW, MIDDLE);
+	cout << endl;
+
+	cout << STRING(bitSet) \
+		<< " reset [" << from << ", " << to << ')' << endl;
+	bitSet.reset(from, to);
+	print(bitSet);
+	print(bitSet, LOW, MIDDLE);
+	cout << endl;
+
+	cout << STRING(bitSet) \
+		<< " flip [" << from << ", " << to << ')' << endl;
+	bitSet.flip(from, to);
+	print(bitSet);
+	print(bitSet, LOW, MIDDLE);
+	cout << endl;
+
+	from = LOW;
+	to = MIDDLE + offset;
+
 	auto bitSet2 = bitSet.copy(from, to);
+
 	cout << STRING(bitSet2) << " from " << STRING(bitSet) \
 		<< " copy [" << from << ", " << to << ')' << endl;
 	print(bitSet2);
-	print(bitSet2, low, middle);
+	print(bitSet2, LOW, MIDDLE);
 	cout << endl;
 
-	from = middle + offset;
-	to = high + offset;
-	cout << STRING(bitSet) << " reset [" << from << ", " << to << ')' << endl;
+	from = MIDDLE + offset;
+	to = HIGH + offset;
+
+	cout << STRING(bitSet) \
+		<< " reset [" << from << ", " << to << ')' << endl;
 	bitSet.reset(from, to);
 	print(bitSet);
-	print(bitSet, low, middle, high);
+	print(bitSet, LOW, MIDDLE, HIGH);
 	cout << endl;
 
-	cout << STRING(bitSet) << " set [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet) \
+		<< " set [" << from << ", " << to << ')' << endl;
 	bitSet.set(from, to);
 	print(bitSet);
-	print(bitSet, low, middle, high);
+	print(bitSet, LOW, MIDDLE, HIGH);
 	cout << endl;
 
-	cout << STRING(bitSet) << " flip [" << from << ", " << to << ')' << endl;
+	cout << STRING(bitSet) \
+		<< " flip [" << from << ", " << to << ')' << endl;
 	bitSet.flip(from, to);
 	print(bitSet);
-	print(bitSet, low, middle, high);
+	print(bitSet, LOW, MIDDLE, HIGH);
 	cout << endl;
 
-	from = middle;
-	to = high + middle + offset;
+	from = MIDDLE;
+	to = HIGH + MIDDLE + offset;
+
 	cout << STRING(bitSet2) << " from " << STRING(bitSet) \
 		<< " copy [" << from << ", " << to << ')' << endl;
 	bitSet2 = bitSet.copy(from, to);
 	print(bitSet2);
-	print(bitSet2, low, middle, high);
+	print(bitSet2, LOW, MIDDLE, HIGH);
 	cout << endl;
 
 	cout << STRING(bitSet) << " flip all" << endl;
 	bitSet.flip();
 	print(bitSet);
-	print(bitSet, low, middle, high);
+	print(bitSet, LOW, MIDDLE, HIGH);
 	cout << endl;
 
 	cout << STRING(bitSet) << " reset all" << endl;
 	bitSet.reset();
 	print(bitSet);
-	print(bitSet, low, middle, high);
+	print(bitSet, LOW, MIDDLE, HIGH);
 	cout << endl;
 
 	cout << STRING(bitSet) << " set all" << endl;
 	bitSet.set();
 	print(bitSet);
-	print(bitSet, low, middle, high);
+	print(bitSet, LOW, MIDDLE, HIGH);
 	cout << endl;
 
 	auto bitSetA = bitSet << offset;
+
 	cout << STRING(bitSetA) << " = " \
 		<< STRING(bitSet) << " << " << offset << endl;
 	print(bitSetA);
-	print(bitSetA, low, middle, high);
+	print(bitSetA, LOW, MIDDLE, HIGH);
 	cout << endl;
 
 	auto bitSetB = bitSet >> offset;
+
 	cout << STRING(bitSetB) << " = " \
 		<< STRING(bitSet) << " >> " << offset << endl;
 	print(bitSetB);
-	print(bitSetB, low, middle, high);
+	print(bitSetB, LOW, MIDDLE, HIGH);
 	cout << endl;
 
-	offset = middle;
+	offset = MIDDLE;
 
 	cout << STRING(bitSetA) << " = " \
 		<< STRING(bitSet) << " << " << offset << endl;
 	bitSetA = bitSet << offset;
 	print(bitSetA);
-	print(bitSetA, low, middle, high);
+	print(bitSetA, LOW, MIDDLE, HIGH);
 	cout << endl;
 
 	cout << STRING(bitSetB) << " = " \
 		<< STRING(bitSet) << " >> " << offset << endl;
 	bitSetB = bitSet >> offset;
 	print(bitSetB);
-	print(bitSetB, low, middle, high);
+	print(bitSetB, LOW, MIDDLE, HIGH);
 	cout << endl;
 
 	cout << STRING(bitSet2) << " = " \
 		<< STRING(bitSetA) << " & " << STRING(bitSetB) << endl;
 	bitSet2 = bitSetA & bitSetB;
 	print(bitSet2);
-	print(bitSet2, low, middle, high);
+	print(bitSet2, LOW, MIDDLE, HIGH);
 	cout << endl;
 
 	cout << STRING(bitSet2) << " = " \
 		<< STRING(bitSetA) << " | " << STRING(bitSetB) << endl;
 	bitSet2 = bitSetA | bitSetB;
 	print(bitSet2);
-	print(bitSet2, low, middle, high);
+	print(bitSet2, LOW, MIDDLE, HIGH);
 	cout << endl;
 
 	cout << STRING(bitSet2) << " = " \
 		<< STRING(bitSetA) << " ^ " << STRING(bitSetB) << endl;
 	bitSet2 = bitSetA ^ bitSetB;
 	print(bitSet2);
-	print(bitSet2, low, middle, high);
+	print(bitSet2, LOW, MIDDLE, HIGH);
 	cout << endl;
 
 	cout << STRING(bitSet2) << " = ~" << STRING(bitSet) << endl;
 	bitSet2 = ~bitSet;
 	print(bitSet2);
-	print(bitSet2, low, middle, high);
+	print(bitSet2, LOW, MIDDLE, HIGH);
 	cout << endl;
 	return EXIT_SUCCESS;
 }
