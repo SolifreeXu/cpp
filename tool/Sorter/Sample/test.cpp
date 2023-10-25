@@ -63,8 +63,8 @@ int main()
 	std::cout << "Load Sorter" << std::endl;
 	SorterType sorter;
 	load(sorter);
-
 	std::cout << "Sorter Size: " << sorter.size() << std::endl;
+
 	std::cout << "No.9" << std::endl;
 	if (auto pointer = sorter.find(9))
 		std::cout << *pointer << std::endl;
@@ -74,8 +74,8 @@ int main()
 
 	std::cout << "Update Sorter" << std::endl;
 	update(sorter);
-
 	std::cout << "Sorter Size: " << sorter.size() << std::endl;
+
 	std::cout << "Top 10" << std::endl;
 	SorterType::RecordList recordList(0);
 	sorter.get(recordList, 0, 10);
