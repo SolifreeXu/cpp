@@ -16,7 +16,7 @@ struct Record
 
 	explicit operator SizeType() const noexcept { return _id; }
 
-	bool operator<(const Record& _another) const noexcept;
+	bool operator<(const Record& _record) const noexcept;
 
 private:
 	friend std::ostream& operator<<(std::ostream& _ostream, \
@@ -27,13 +27,13 @@ private:
 	}
 };
 
-bool Record::operator<(const Record& _another) const noexcept
+bool Record::operator<(const Record& _record) const noexcept
 {
-	return this->_integral < _another._integral \
-		or this->_integral == _another._integral \
-		and (this->_timestamp > _another._timestamp \
-			or this->_timestamp == _another._timestamp \
-			and this->_id > _another._id);
+	return this->_integral < _record._integral \
+		or this->_integral == _record._integral \
+		and (this->_timestamp > _record._timestamp \
+			or this->_timestamp == _record._timestamp \
+			and this->_id > _record._id);
 }
 
 using SizeType = Record::SizeType;
