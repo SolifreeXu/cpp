@@ -1,9 +1,9 @@
-#pragma once
+ï»¿#pragma once
 
 #include "Compiler.hpp"
 
 #if defined(COMPILER_CLANG) || defined(COMPILER_GCC)
-// GCC»òÕßClang
+// GCCæˆ–è€…Clang
 
 #ifdef __cplusplus
 #if __cplusplus >= 201103L
@@ -43,5 +43,5 @@
 #endif
 
 #else
-// ÆäËû»òÕßÎ´Öª±àÒëÆ÷
+// å…¶ä»–æˆ–è€…æœªçŸ¥ç¼–è¯‘å™¨
 #endif

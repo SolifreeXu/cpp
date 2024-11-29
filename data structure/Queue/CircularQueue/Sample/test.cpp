@@ -1,4 +1,4 @@
-#include "CircularQueue.hpp"
+ï»¿#include "CircularQueue.hpp"
 #include "Integer.hpp"
 
 #include <cstdlib>
@@ -90,7 +90,7 @@ int main()
 	for (int index = 1; index < 5; ++index)
 		queue2.insert(queue2.begin(), index);
 
-	// ÌØÊâÓÃ·¨£ºÏà¶ÔÎ»ÖÃ
+	// ç‰¹æ®Šç”¨æ³•ï¼šç›¸å¯¹ä½ç½®
 	auto iterator = queue2.cend();
 	for (int index = 9; index > 5; --index)
 		queue2.insert(iterator, index);

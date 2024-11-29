@@ -1,7 +1,7 @@
-#pragma once
+ï»¿#pragma once
 
 #if defined(__GNUC__)
-// GCC»òÕßClang
+// GCCæˆ–è€…Clang
 
 #if defined(__clang__) // Clang
 #define COMPILER_CLANG
@@ -14,5 +14,5 @@
 #define COMPILER_MSVC
 
 #else
-// ÆäËû»òÕßÎ´Öª±àÒëÆ÷
+// å…¶ä»–æˆ–è€…æœªçŸ¥ç¼–è¯‘å™¨
 #endif
