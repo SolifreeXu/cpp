@@ -1,6 +1,7 @@
 ﻿#pragma once
 
-#include <optional>
+#include "Version.hpp"
+
 #include <utility>
 #include <list>
 #include <unordered_map>
@@ -14,10 +15,18 @@ public:
 
 	using PairType = std::pair<KeyType, ValueType>;
 	using QueueType = std::list<PairType>;
+#if CXX_VERSION >= CXX_2020
 	using SizeType = QueueType::size_type;
+#else
+	using SizeType = typename QueueType::size_type;
+#endif
 
 private:
+#if CXX_VERSION >= CXX_2020
 	using Iterator = QueueType::iterator;
+#else
+	using Iterator = typename QueueType::iterator;
+#endif
 	using TableType = std::unordered_map<KeyType, Iterator>;
 
 private:
@@ -46,17 +55,20 @@ public:
 
 	bool exist(const KeyType& _key) const
 	{
+#if CXX_VERSION >= CXX_2020
 		return _table.contains(_key);
+#else
+		return _table.find(_key) != _table.end();
+#endif
 	}
 
-	bool find(const KeyType& _key, ValueType& _value);
-	std::optional<ValueType> find(const KeyType& _key);
+	const ValueType* find(const KeyType& _key);
 
 	void push(const KeyType& _key, const ValueType& _value);
 	void push(const KeyType& _key, ValueType&& _value);
 
 	bool pop(const KeyType& _key, ValueType& _value);
-	std::optional<ValueType> pop(const KeyType& _key);
+	void pop(const KeyType& _key);
 
 	bool pop(QueueType& _queue);
 
@@ -85,31 +97,17 @@ void LRUQueue<_KeyType, _ValueType>::erase()
 }
 
 template <typename _KeyType, typename _ValueType>
-bool LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key, \
-	ValueType& _value)
-{
-	auto iterTable = _table.find(_key);
-	if (iterTable == _table.end()) return false;
-
-	auto& iterQueue = iterTable->second;
-	_value = iterQueue->second;
-
-	move(iterQueue);
-	return true;
-}
-
-template <typename _KeyType, typename _ValueType>
 auto LRUQueue<_KeyType, _ValueType>::find(const KeyType& _key) \
--> std::optional<ValueType>
+-> const ValueType*
 {
 	auto iterTable = _table.find(_key);
-	if (iterTable == _table.end()) return std::nullopt;
+	if (iterTable == _table.end()) return nullptr;
 
 	auto& iterQueue = iterTable->second;
 	auto& value = iterQueue->second;
 
 	move(iterQueue);
-	return value;
+	return &value;
 }
 
 template <typename _KeyType, typename _ValueType>
@@ -172,18 +170,15 @@ bool LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key, \
 }
 
 template <typename _KeyType, typename _ValueType>
-auto LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key) \
--> std::optional<ValueType>
+void LRUQueue<_KeyType, _ValueType>::pop(const KeyType& _key)
 {
 	auto iterTable = _table.find(_key);
-	if (iterTable == _table.end()) return std::nullopt;
-
-	auto& iterQueue = iterTable->second;
-	std::optional result = std::move(iterQueue->second);
-
-	_queue.erase(iterQueue);
-	_table.erase(iterTable);
-	return result;
+	if (iterTable != _table.end())
+	{
+		auto& iterQueue = iterTable->second;
+		_queue.erase(iterQueue);
+		_table.erase(iterTable);
+	}
 }
 
 template <typename _KeyType, typename _ValueType>

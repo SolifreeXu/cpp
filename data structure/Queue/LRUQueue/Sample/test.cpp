@@ -1,4 +1,5 @@
 ﻿#include "LRUQueue.hpp"
+#include "Version.hpp"
 
 #include <cstdlib>
 #include <cstddef>
@@ -37,26 +38,44 @@ int main()
 	using CacheType = LRUQueue<Key, int>;
 	using QueueType = CacheType::QueueType;
 
+#if CXX_VERSION >= CXX_2017
+	using std::cout, std::endl;
+#else
+	using std::cout;
+	using std::endl;
+#endif
+
 	CacheType cache(9);
 	auto index = 0;
 	for (; index < 10; ++index)
 		cache.push(index, index);
 
-	if (auto result = cache.find(1))
-		std::cout << result.value() << std::endl;
+#if CXX_VERSION >= CXX_2017
+	if (auto result = cache.find(1); \
+		result != nullptr)
+#else
+	auto result = cache.find(1);
+	if (result != nullptr)
+#endif
+		cout << *result << endl;
 
-	std::cout << cache.size() << std::endl;
+	cout << cache.size() << endl;
 	cache.pop(--index);
-	std::cout << cache.size() << std::endl;
+	cout << cache.size() << endl;
 
+#if CXX_VERSION >= CXX_2017
 	if (QueueType queue; cache.pop(queue))
+#else
+	QueueType queue;
+	if (cache.pop(queue))
+#endif
 	{
 		for (const auto& pair : queue)
-			std::cout << pair.second << ' ';
-		std::cout << '\b' << std::endl;;
+			cout << pair.second << ' ';
+		cout << '\b' << endl;
 	}
 
-	std::cout << std::boolalpha \
-		<< cache.empty() << std::endl;
+	cout << std::boolalpha \
+		<< cache.empty() << endl;
 	return EXIT_SUCCESS;
 }
