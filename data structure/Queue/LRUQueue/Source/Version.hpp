@@ -1,6 +1,10 @@
 ﻿#pragma once
 
-#include "Compiler.hpp"
+#include "Compiler.h"
+
+#ifndef __cplusplus
+#error The file requires a C++ compiler.
+#endif
 
 #define CXX_1998 199711L
 #define CXX_2011 201103L
