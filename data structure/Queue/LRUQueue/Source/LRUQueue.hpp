@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "Common.hpp"
 #include "Version.hpp"
 
 #include <utility>
@@ -44,16 +45,16 @@ public:
 	LRUQueue(decltype(_capacity) _capacity = 0) : \
 		_capacity(_capacity) {}
 
-	auto capacity() const noexcept { return _capacity; }
+	NODISCARD auto capacity() const noexcept { return _capacity; }
 	void reserve(decltype(_capacity) _capacity) noexcept
 	{
 		this->_capacity = _capacity;
 	}
 
-	bool empty() const noexcept { return _queue.empty(); }
-	auto size() const noexcept { return _queue.size(); }
+	NODISCARD bool empty() const noexcept { return _queue.empty(); }
+	NODISCARD auto size() const noexcept { return _queue.size(); }
 
-	bool exist(const KeyType& _key) const
+	NODISCARD bool exist(const KeyType& _key) const
 	{
 #if CXX_VERSION >= CXX_2020
 		return _table.contains(_key);
@@ -62,15 +63,15 @@ public:
 #endif
 	}
 
-	const ValueType* find(const KeyType& _key);
+	NODISCARD const ValueType* find(const KeyType& _key);
 
 	void push(const KeyType& _key, const ValueType& _value);
 	void push(const KeyType& _key, ValueType&& _value);
 
-	bool pop(const KeyType& _key, ValueType& _value);
+	NODISCARD bool pop(const KeyType& _key, ValueType& _value);
 	void pop(const KeyType& _key);
 
-	bool pop(QueueType& _queue);
+	NODISCARD bool pop(QueueType& _queue);
 
 	void clear() noexcept;
 };

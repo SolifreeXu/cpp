@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{682875dc-dc11-465e-8cdd-ad57c0fa0db9}</ProjectGuid>
-    <RootNamespace>LRUQueue</RootNamespace>
+    <RootNamespace>MovableWrapper</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -155,13 +155,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Integer.cpp" />
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\Common.hpp" />
-    <ClInclude Include="..\Source\LRUQueue.hpp" />
+    <ClInclude Include="..\Source\MovableWrapper.hpp" />
     <ClInclude Include="..\Source\Compiler.h" />
     <ClInclude Include="..\Source\Version.hpp" />
+    <ClInclude Include="Integer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

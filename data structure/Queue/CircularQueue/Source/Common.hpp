@@ -46,7 +46,7 @@ inline constexpr auto POP_BACK_ON_EMPTY_CONTAINER = "pop_back called on empty co
 #ifndef HAS_CXX20
 namespace std
 {
-	template <class _Type, class... _Args>
+	template <typename _Type, typename... _Args>
 	constexpr _Type* construct_at(_Type* _pointer, _Args&&... _args)
 	{
 		return new(_pointer) _Type(forward<_Args>(_args)...);
