@@ -1,11 +1,32 @@
 #pragma once
 
-#include <chrono>
+#include "Version.hpp"
+
+#if CXX_VERSION < CXX_2014 && !defined(__cpp_lib_shared_timed_mutex)
+#define ETERFREE_SHARED_TIMED_MUTEX
+#endif
+
+#if defined(ETERFREE_SHARED_TIMED_MUTEX) \
+	|| CXX_VERSION < CXX_2017 && !defined(__cpp_lib_shared_mutex)
+#define ETERFREE_SHARED_MUTEX
+#endif
+
+#if defined(ETERFREE_SHARED_MUTEX) || defined(ETERFREE_SHARED_TIMED_MUTEX)
+#include "Common.hpp"
+#endif
+
+#ifdef ETERFREE_SHARED_MUTEX
 #include <cstddef>
 #include <functional>
 #include <condition_variable>
 #include <mutex>
+#endif
 
+#ifdef ETERFREE_SHARED_TIMED_MUTEX
+#include <chrono>
+#endif
+
+#ifdef ETERFREE_SHARED_MUTEX
 // std::mutex在一个线程被锁定，不可以在另一个线程被释放
 //class SharedMutex
 //{
@@ -14,6 +35,7 @@
 //	std::mutex _countMutex;
 //	std::size_t _counter;
 
+//private:
 //	SharedMutex() : \
 //		_counter(0) {}
 //}
@@ -35,9 +57,9 @@ protected:
 	Predicate _shareable;
 
 protected:
-	bool tryLock() noexcept;
+	NODISCARD bool tryLock() noexcept;
 
-	bool tryLockShared() noexcept;
+	NODISCARD bool tryLockShared() noexcept;
 
 public:
 	SharedMutex();
@@ -50,7 +72,7 @@ public:
 
 	void lock();
 
-	bool try_lock()
+	NODISCARD bool try_lock()
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		return tryLock();
@@ -60,7 +82,7 @@ public:
 
 	void lock_shared();
 
-	bool try_lock_shared()
+	NODISCARD bool try_lock_shared()
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		return tryLockShared();
@@ -68,13 +90,14 @@ public:
 
 	void unlock_shared();
 };
+#endif
 
+#ifdef ETERFREE_SHARED_TIMED_MUTEX
 class SharedTimedMutex final : public SharedMutex
 {
-private:
 	template <typename _Rep, typename _Period>
-	static std::chrono::nanoseconds getDuration(const std::chrono::steady_clock::time_point& _timePoint, \
-		const std::chrono::duration<_Rep, _Period>& _duration);
+	static NODISCARD auto getDuration(const std::chrono::steady_clock::time_point& _timePoint, \
+		const std::chrono::duration<_Rep, _Period>& _duration) -> std::chrono::nanoseconds;
 
 public:
 	SharedTimedMutex() = default;
@@ -84,47 +107,56 @@ public:
 	SharedTimedMutex& operator=(const SharedTimedMutex&) = delete;
 
 	template <typename _Rep, typename _Period>
-	bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _duration);
+	NODISCARD bool try_lock_for(const std::chrono::duration<_Rep, _Period>& _duration);
 
 	template <typename _Clock, typename _Duration>
-	bool try_lock_until(const std::chrono::time_point<_Clock, _Duration>& _timePoint);
+	NODISCARD bool try_lock_until(const std::chrono::time_point<_Clock, _Duration>& _timePoint);
 
 	template <typename _Rep, typename _Period>
-	bool try_lock_shared_for(const std::chrono::duration<_Rep, _Period>& _duration);
+	NODISCARD bool try_lock_shared_for(const std::chrono::duration<_Rep, _Period>& _duration);
 
 	template <typename _Clock, typename _Duration>
-	bool try_lock_shared_until(const std::chrono::time_point<_Clock, _Duration>& _timePoint);
+	NODISCARD bool try_lock_shared_until(const std::chrono::time_point<_Clock, _Duration>& _timePoint);
 };
 
 template <typename _Rep, typename _Period>
-std::chrono::nanoseconds SharedTimedMutex::getDuration(const std::chrono::steady_clock::time_point& _timePoint, \
-	const std::chrono::duration<_Rep, _Period>& _duration)
+auto SharedTimedMutex::getDuration(const std::chrono::steady_clock::time_point& _timePoint, \
+	const std::chrono::duration<_Rep, _Period>& _duration) -> std::chrono::nanoseconds
 {
-	auto duration = std::chrono::steady_clock::now() - _timePoint;
-	duration = _duration > duration ? _duration - duration : duration.zero();
-	return std::chrono::duration_cast<std::chrono::nanoseconds>(duration);
+	using namespace std::chrono;
+
+	auto duration = steady_clock::now() - _timePoint;
+
+	using Duration = decltype(duration);
+
+	duration = _duration > duration ? _duration - duration : Duration::zero();
+	return duration_cast<nanoseconds>(duration);
 }
 
 template <typename _Rep, typename _Period>
 bool SharedTimedMutex::try_lock_for(const std::chrono::duration<_Rep, _Period>& _duration)
 {
-	auto timePoint = std::chrono::steady_clock::now();
+	using namespace std::chrono;
 
 	std::unique_lock<std::mutex> lock(_mutex);
 
+	auto timePoint = steady_clock::now();
 	auto duration = getDuration(timePoint, _duration);
-	if (duration == duration.zero()) return tryLock();
 
-	if (not _batchQueue.wait_for(lock, duration, _exclusive)) return false;
+	using Duration = decltype(duration);
 
-	_flag = true;
+	if (duration == Duration::zero()) return tryLock();
 
-	auto flag = true;
+	if (!_batchQueue.wait_for(lock, duration, _exclusive)) return false;
+
+	auto flag = _flag = true;
+
+	timePoint = steady_clock::now();
 	duration = getDuration(timePoint, _duration);
-	if (duration == duration.zero())
+	if (duration == Duration::zero())
 		if (flag = _unshared()) return true;
 
-	if (not flag or not _singleQueue.wait_for(lock, duration, _unshared))
+	if (!flag || !_singleQueue.wait_for(lock, duration, _unshared))
 	{
 		_flag = false;
 		lock.unlock();
@@ -139,11 +171,11 @@ template <typename _Clock, typename _Duration>
 bool SharedTimedMutex::try_lock_until(const std::chrono::time_point<_Clock, _Duration>& _timePoint)
 {
 	std::unique_lock<std::mutex> lock(_mutex);
-	if (not _batchQueue.wait_until(lock, _timePoint, _exclusive)) return false;
+	if (!_batchQueue.wait_until(lock, _timePoint, _exclusive)) return false;
 
 	_flag = true;
 
-	if (not _singleQueue.wait_until(lock, _timePoint, _unshared))
+	if (!_singleQueue.wait_until(lock, _timePoint, _unshared))
 	{
 		_flag = false;
 		lock.unlock();
@@ -157,15 +189,16 @@ bool SharedTimedMutex::try_lock_until(const std::chrono::time_point<_Clock, _Dur
 template <typename _Rep, typename _Period>
 bool SharedTimedMutex::try_lock_shared_for(const std::chrono::duration<_Rep, _Period>& _duration)
 {
-	auto timePoint = std::chrono::steady_clock::now();
-
 	std::unique_lock<std::mutex> lock(_mutex);
 
+	auto timePoint = std::chrono::steady_clock::now();
 	auto duration = getDuration(timePoint, _duration);
-	if (duration == duration.zero()) return tryLockShared();
 
-	if (not _batchQueue.wait_for(lock, duration, _shareable))
-		return false;
+	using Duration = decltype(duration);
+
+	if (duration == Duration::zero()) return tryLockShared();
+
+	if (!_batchQueue.wait_for(lock, duration, _shareable)) return false;
 
 	++_counter;
 	return true;
@@ -175,8 +208,9 @@ template <typename _Clock, typename _Duration>
 bool SharedTimedMutex::try_lock_shared_until(const std::chrono::time_point<_Clock, _Duration>& _timePoint)
 {
 	std::unique_lock<std::mutex> lock(_mutex);
-	if (not _batchQueue.wait_until(lock, _timePoint, _shareable)) return false;
+	if (!_batchQueue.wait_until(lock, _timePoint, _shareable)) return false;
 
 	++_counter;
 	return true;
 }
+#endif

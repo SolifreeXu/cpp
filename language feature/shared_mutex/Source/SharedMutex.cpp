@@ -1,17 +1,20 @@
-#include "SharedMutex.h"
+#include "SharedMutex.hpp"
 
+#ifdef ETERFREE_SHARED_MUTEX
 #include <cstdint>
+#endif
 
+#ifdef ETERFREE_SHARED_MUTEX
 bool SharedMutex::tryLock() noexcept
 {
-	if (_flag or _counter > 0)
+	if (_flag || _counter > 0)
 		return false;
 	return _flag = true;
 }
 
 bool SharedMutex::tryLockShared() noexcept
 {
-	if (_flag or _counter == SIZE_MAX)
+	if (_flag || _counter == SIZE_MAX)
 		return false;
 
 	++_counter;
@@ -23,7 +26,7 @@ SharedMutex::SharedMutex() : \
 {
 	_exclusive = [this]
 	{
-		return not _flag;
+		return !_flag;
 	};
 
 	_unshared = [this]
@@ -33,8 +36,8 @@ SharedMutex::SharedMutex() : \
 
 	_shareable = [this]
 	{
-		return not _flag \
-			and _counter < SIZE_MAX;
+		return !_flag \
+			&& _counter < SIZE_MAX;
 	};
 }
 
@@ -68,19 +71,19 @@ void SharedMutex::lock_shared()
 void SharedMutex::unlock_shared()
 {
 	_mutex.lock();
-	auto count = --_counter;
+	auto count = _counter--;
 	auto exclusive = _flag;
 	_mutex.unlock();
 
 	if (exclusive)
 	{
-		if (count == 0)
+		if (count == 1)
 			_singleQueue.notify_one();
 	}
-	else if (not exclusive)
+	else
 	{
-		constexpr auto MAX_SIZE = SIZE_MAX - 1;
-		if (count == MAX_SIZE)
+		if (count == SIZE_MAX)
 			_batchQueue.notify_all();
 	}
 }
+#endif
