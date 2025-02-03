@@ -4,7 +4,7 @@ C++之道的精选代码，按照语言特性、数据结构、算法集、设�
 ## 语言特性
 位集合类模板：[bitset](language%20feature/bitset)  
 可移动封装器：[MovableWrapper](language%20feature/MovableWrapper)  
-共享互斥元组件：[shared_mutex](language%20feature/shared_mutex)  
+共享互斥元件：[shared_mutex](language%20feature/shared_mutex)  
 通用工具组件：[utility](language%20feature/utility)
 ### iostream
 [fixed-point decimal precision](language%20feature/iostream/fixed-point%20decimal%20precision.cpp)
