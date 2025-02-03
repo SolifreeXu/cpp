@@ -59,3 +59,7 @@
 #define CXX_VERSION CXX_1998
 #endif
 #endif
+
+#if CXX_VERSION >= CXX_2020
+#include <version>
+#endif

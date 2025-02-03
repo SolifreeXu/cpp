@@ -6,13 +6,9 @@
 #include <type_traits>
 #include <utility>
 
-#if CXX_VERSION >= CXX_2020
-#include <version>
-
 #ifdef __cpp_lib_source_location
 #include <source_location>
 #include <ostream>
-#endif
 #endif
 
 // 字符串化
@@ -55,12 +51,12 @@
 
 namespace std
 {
-#if CXX_VERSION < CXX_2017
+#if CXX_VERSION < CXX_2017 && !defined(__cpp_lib_bool_constant)
 	template <bool value>
 	using bool_constant = integral_constant<bool, value>;
 #endif
 
-#if CXX_VERSION < CXX_2017
+#if CXX_VERSION < CXX_2017 && !defined(__cpp_lib_nonmember_container_access)
 	//template <typename _Type, const decltype(sizeof 0) _SIZE>
 	//NODISCARD constexpr auto size(_Type(&_array)[_SIZE]) noexcept
 	//{
@@ -129,7 +125,7 @@ template <typename _Type>
 inline constexpr bool is_base_v = is_base<_Type>::value;
 #endif
 
-#if CXX_VERSION >= CXX_2020 && defined(__cpp_lib_source_location)
+#ifdef __cpp_lib_source_location
 inline std::ostream& operator<<(std::ostream& _stream, \
 	const std::source_location& _location)
 {
